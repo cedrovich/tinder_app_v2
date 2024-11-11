@@ -1,0 +1,44 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "com.google.gms.google-services" // Plugin de Google Services para Firebase
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace = "com.example.tinder_app_v2"
+    compileSdk = 34 // Asegúrate de usar una versión de SDK compatible
+
+    defaultConfig {
+        applicationId = "com.example.tinder_app_v2"
+        minSdk = 23
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0"
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.debug // Solo para propósitos de prueba; cambiar para producción
+        }
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.8.0" // Asegúrate de usar la versión adecuada
+    implementation platform('com.google.firebase:firebase-bom:32.1.1') // BOM para Firebase
+    implementation 'com.google.firebase:firebase-auth-ktx' // Firebase Auth
+}
+
+flutter {
+    source = "../.."
+}

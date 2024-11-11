@@ -1,0 +1,27 @@
+name: tinder_app_v2
+description: "A new Flutter project."
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  firebase_core: ^3.7.0 # Actualización de firebase_core para compatibilidad
+  firebase_auth: ^5.3.2 # Versión de firebase_auth especificada
+  cloud_firestore: ^5.4.5
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
