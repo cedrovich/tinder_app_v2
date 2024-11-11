@@ -6,7 +6,6 @@ class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _LoginPageState createState() => _LoginPageState();
 }
 
@@ -29,7 +28,6 @@ class _LoginPageState extends State<LoginPage> {
     String email = input;
 
     if (!input.contains('@')) {
-      // Si no es un correo, asumimos que es un nombre y buscamos el correo en Firestore
       final querySnapshot = await _firestore
           .collection('users')
           .where('name', isEqualTo: input)
@@ -46,11 +44,70 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
-      // ignore: use_build_context_synchronously
       Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
       handleAuthError(e);
     }
+  }
+
+  Future<void> resetPassword() async {
+    final emailController = TextEditingController();
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Recuperar Contraseña'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Introduce tu correo para recuperar tu contraseña'),
+            TextField(
+              controller: emailController,
+              decoration: const InputDecoration(labelText: 'Correo'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final email = emailController.text.trim();
+              Navigator.of(context).pop(); // Cerrar el cuadro de diálogo
+              if (email.isNotEmpty) {
+                try {
+                  await _auth.sendPasswordResetEmail(email: email);
+                  showConfirmationDialog('Se ha enviado un correo para restablecer tu contraseña.');
+                } catch (e) {
+                  showErrorDialog('Error al enviar el correo de recuperación.');
+                }
+              } else {
+                showErrorDialog('Por favor, introduce un correo válido.');
+              }
+            },
+            child: const Text('Enviar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void showConfirmationDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Recuperación de Contraseña'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   void showErrorDialog(String message) {
@@ -113,6 +170,10 @@ class _LoginPageState extends State<LoginPage> {
             ElevatedButton(
               onPressed: signIn,
               child: const Text('Inicio de Sesion'),
+            ),
+            TextButton(
+              onPressed: resetPassword,
+              child: const Text('¿Olvidaste tu contraseña?'),
             ),
             TextButton(
               onPressed: () {

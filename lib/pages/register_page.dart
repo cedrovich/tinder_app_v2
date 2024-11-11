@@ -6,7 +6,6 @@ class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _RegisterPageState createState() => _RegisterPageState();
 }
 
@@ -19,13 +18,19 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  // Género seleccionado
+  String? selectedGender;
+
+  // Lista de opciones de género
+  final List<String> genderOptions = ['Masculino', 'Femenino', 'Otro'];
+
   Future<void> register() async {
     final name = nameController.text.trim();
     final ageText = ageController.text.trim();
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
 
-    if (name.isEmpty || ageText.isEmpty || email.isEmpty || password.isEmpty) {
+    if (name.isEmpty || ageText.isEmpty || email.isEmpty || password.isEmpty || selectedGender == null) {
       showErrorDialog('Todos los campos son obligatorios');
       return;
     }
@@ -45,10 +50,11 @@ class _RegisterPageState extends State<RegisterPage> {
         'name': name,
         'age': age,
         'email': email,
+        'gender': selectedGender,
       });
 
-      // ignore: use_build_context_synchronously
-      Navigator.pushReplacementNamed(context, '/home');
+      // Redirige a la pantalla de información adicional
+      Navigator.pushReplacementNamed(context, '/informationUser');
     } catch (e) {
       showErrorDialog('Error: ${e.toString()}');
     }
@@ -97,6 +103,22 @@ class _RegisterPageState extends State<RegisterPage> {
               controller: passwordController,
               obscureText: true,
               decoration: const InputDecoration(labelText: 'Contraseña'),
+            ),
+            const SizedBox(height: 20),
+            DropdownButtonFormField<String>(
+              value: selectedGender,
+              items: genderOptions.map((gender) {
+                return DropdownMenuItem(
+                  value: gender,
+                  child: Text(gender),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedGender = value;
+                });
+              },
+              decoration: const InputDecoration(labelText: 'Género'),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
