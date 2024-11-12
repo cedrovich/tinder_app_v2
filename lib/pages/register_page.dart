@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+  const RegisterPage({Key? key}) : super(key: key);
 
   @override
   _RegisterPageState createState() => _RegisterPageState();
@@ -18,13 +19,16 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  // Género seleccionado
   String? selectedGender;
-
-  // Lista de opciones de género
   final List<String> genderOptions = ['Masculino', 'Femenino', 'Otro'];
 
+  bool _isLoading = false;
+
   Future<void> register() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     final name = nameController.text.trim();
     final ageText = ageController.text.trim();
     final email = emailController.text.trim();
@@ -32,12 +36,18 @@ class _RegisterPageState extends State<RegisterPage> {
 
     if (name.isEmpty || ageText.isEmpty || email.isEmpty || password.isEmpty || selectedGender == null) {
       showErrorDialog('Todos los campos son obligatorios');
+      setState(() {
+        _isLoading = false;
+      });
       return;
     }
 
     int? age = int.tryParse(ageText);
     if (age == null || age < 18) {
       showErrorDialog('Debes tener al menos 18 años para registrarte');
+      setState(() {
+        _isLoading = false;
+      });
       return;
     }
 
@@ -45,7 +55,6 @@ class _RegisterPageState extends State<RegisterPage> {
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
 
-      // Guardar información adicional en Firestore
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
         'name': name,
         'age': age,
@@ -53,11 +62,14 @@ class _RegisterPageState extends State<RegisterPage> {
         'gender': selectedGender,
       });
 
-      // Redirige a la pantalla de información adicional
       Navigator.pushReplacementNamed(context, '/informationUser');
     } catch (e) {
       showErrorDialog('Error: ${e.toString()}');
     }
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   void showErrorDialog(String message) {
@@ -79,53 +91,131 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Registrate')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Nombre'),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [Colors.pink, Colors.orange],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      FontAwesomeIcons.fire,
+                      size: 80,
+                      color: Colors.white,
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      'Regístrate',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    _buildTextField(nameController, 'Nombre', Icons.person),
+                    SizedBox(height: 12),
+                    _buildTextField(ageController, 'Edad', Icons.cake, keyboardType: TextInputType.number),
+                    SizedBox(height: 12),
+                    _buildTextField(emailController, 'Correo', Icons.email, keyboardType: TextInputType.emailAddress),
+                    SizedBox(height: 12),
+                    _buildTextField(passwordController, 'Contraseña', Icons.lock, isPassword: true),
+                    SizedBox(height: 12),
+                    _buildGenderDropdown(),
+                    SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: _isLoading ? null : register,
+                      child: _isLoading
+                          ? CircularProgressIndicator(color: Colors.pink)
+                          : Text(
+                              'Registrarte',
+                              style: TextStyle(fontSize: 18, color: Colors.pink),
+                            ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        '¿Ya tienes una cuenta? Inicia sesión',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            TextField(
-              controller: ageController,
-              decoration: const InputDecoration(labelText: 'Edad'),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: emailController,
-              decoration: const InputDecoration(labelText: 'Correo'),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Contraseña'),
-            ),
-            const SizedBox(height: 20),
-            DropdownButtonFormField<String>(
-              value: selectedGender,
-              items: genderOptions.map((gender) {
-                return DropdownMenuItem(
-                  value: gender,
-                  child: Text(gender),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedGender = value;
-                });
-              },
-              decoration: const InputDecoration(labelText: 'Género'),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: register,
-              child: const Text('Registrarte'),
-            ),
-          ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, {bool isPassword = false, TextInputType? keyboardType}) {
+    return TextField(
+      controller: controller,
+      obscureText: isPassword,
+      keyboardType: keyboardType,
+      style: TextStyle(color: Colors.black87),
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.white,
+        hintText: hint,
+        prefixIcon: Icon(icon, color: Colors.grey),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGenderDropdown() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButtonFormField<String>(
+          value: selectedGender,
+          items: genderOptions.map((gender) {
+            return DropdownMenuItem(
+              value: gender,
+              child: Text(gender),
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              selectedGender = value;
+            });
+          },
+          decoration: InputDecoration(
+            prefixIcon: Icon(Icons.person_outline, color: Colors.grey),
+            hintText: 'Género',
+            border: InputBorder.none,
+          ),
+          icon: Icon(Icons.arrow_drop_down, color: Colors.grey),
+          isExpanded: true,
+          dropdownColor: Colors.white,
         ),
       ),
     );

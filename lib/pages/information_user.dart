@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class InformationUserPage extends StatefulWidget {
   @override
@@ -12,7 +13,7 @@ class _InformationUserPageState extends State<InformationUserPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   final TextEditingController descriptionController = TextEditingController();
-  List<String> photos = []; // Lista para almacenar las URLs de fotos simuladas
+  List<String> photos = [];
 
   final List<String> preferenceOptions = [
     'Rock', 'Pop', 'Jazz', 'Clásica', 'Reguetón', 'Electrónica', 'Hip Hop', 'Deportes', 'Cine', 'Viajes', 'Tecnología'
@@ -48,7 +49,6 @@ class _InformationUserPageState extends State<InformationUserPage> {
           'preferences': selectedPreferencesList,
         });
 
-        // Enviar correo de verificación
         await user.sendEmailVerification();
         showConfirmationDialog(
           'Cuenta creada con éxito. Por favor, revisa tu correo para verificar tu cuenta.'
@@ -63,7 +63,7 @@ class _InformationUserPageState extends State<InformationUserPage> {
 
   void addFakePhoto() {
     setState(() {
-      photos.add("https://example.com/photo.jpg"); // URL ficticia para la foto
+      photos.add("https://example.com/photo.jpg");
     });
   }
 
@@ -102,51 +102,126 @@ class _InformationUserPageState extends State<InformationUserPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Información del Usuario')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: descriptionController,
-              decoration: InputDecoration(labelText: 'Descripción'),
-              maxLines: 3,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [Colors.pink, Colors.orange],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Icon(
+                      FontAwesomeIcons.fire,
+                      size: 60,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(height: 24),
+                  Text(
+                    'Completa tu perfil',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(height: 24),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: TextField(
+                      controller: descriptionController,
+                      decoration: InputDecoration(
+                        labelText: 'Descripción',
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.all(16),
+                      ),
+                      maxLines: 3,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: addFakePhoto,
+                    icon: Icon(Icons.add_a_photo, color: Colors.pink),
+                    label: Text('Agregar Foto', style: TextStyle(color: Colors.pink)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Wrap(
+                    spacing: 8.0,
+                    runSpacing: 8.0,
+                    children: photos
+                        .map((url) => ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.network(url, width: 100, height: 100, fit: BoxFit.cover),
+                            ))
+                        .toList(),
+                  ),
+                  SizedBox(height: 24),
+                  Text(
+                    'Tus intereses',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Wrap(
+                    spacing: 8.0,
+                    runSpacing: 8.0,
+                    children: preferenceOptions.map((pref) {
+                      return FilterChip(
+                        label: Text(pref),
+                        selected: selectedPreferences[pref] ?? false,
+                        onSelected: (bool selected) {
+                          setState(() {
+                            selectedPreferences[pref] = selected;
+                          });
+                        },
+                        selectedColor: Colors.pink.shade200,
+                        checkmarkColor: Colors.white,
+                        backgroundColor: Colors.white,
+                      );
+                    }).toList(),
+                  ),
+                  SizedBox(height: 24),
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: saveUserInfo,
+                      child: Text(
+                        'Guardar Información',
+                        style: TextStyle(fontSize: 18, color: Colors.pink),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: addFakePhoto, // Simular la carga de una foto
-              child: Text('Agregar Foto'),
-            ),
-            Wrap(
-              spacing: 8.0,
-              runSpacing: 8.0,
-              children: photos
-                  .map((url) => Image.network(url, width: 100, height: 100))
-                  .toList(),
-            ),
-            SizedBox(height: 20),
-            Text('Preferencias'),
-            Wrap(
-              spacing: 8.0,
-              children: preferenceOptions.map((pref) {
-                return FilterChip(
-                  label: Text(pref),
-                  selected: selectedPreferences[pref] ?? false,
-                  onSelected: (bool selected) {
-                    setState(() {
-                      selectedPreferences[pref] = selected;
-                    });
-                  },
-                );
-              }).toList(),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: saveUserInfo,
-              child: Text('Guardar Información'),
-            ),
-          ],
+          ),
         ),
       ),
     );

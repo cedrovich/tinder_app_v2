@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({Key? key}) : super(key: key);
 
   @override
   _LoginPageState createState() => _LoginPageState();
@@ -16,12 +17,21 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailOrNameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  bool _isLoading = false;
+
   Future<void> signIn() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     final input = emailOrNameController.text.trim();
     final password = passwordController.text.trim();
 
     if (input.isEmpty || password.isEmpty) {
       showErrorDialog('Email/Nombre y contraseña no pueden estar vacíos');
+      setState(() {
+        _isLoading = false;
+      });
       return;
     }
 
@@ -36,6 +46,9 @@ class _LoginPageState extends State<LoginPage> {
 
       if (querySnapshot.docs.isEmpty) {
         showErrorDialog('No se encontró un usuario con este nombre');
+        setState(() {
+          _isLoading = false;
+        });
         return;
       }
 
@@ -48,6 +61,10 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       handleAuthError(e);
     }
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   Future<void> resetPassword() async {
@@ -75,7 +92,7 @@ class _LoginPageState extends State<LoginPage> {
           TextButton(
             onPressed: () async {
               final email = emailController.text.trim();
-              Navigator.of(context).pop(); // Cerrar el cuadro de diálogo
+              Navigator.of(context).pop();
               if (email.isNotEmpty) {
                 try {
                   await _auth.sendPasswordResetEmail(email: email);
@@ -151,37 +168,106 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Inicia Sesion')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: emailOrNameController,
-              decoration: const InputDecoration(labelText: 'Nombre o Correo'),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [Colors.pink, Colors.orange],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      FontAwesomeIcons.fire,
+                      size: 80,
+                      color: Colors.white,
+                    ),
+                    SizedBox(height: 48),
+                    Text(
+                      'Inicia Sesión',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(height: 48),
+                    TextField(
+                      controller: emailOrNameController,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
+                        hintText: 'Nombre o Correo',
+                        prefixIcon: Icon(Icons.person, color: Colors.grey),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    TextField(
+                      controller: passwordController,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
+                        hintText: 'Contraseña',
+                        prefixIcon: Icon(Icons.lock, color: Colors.grey),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: _isLoading ? null : signIn,
+                      child: _isLoading
+                          ? CircularProgressIndicator(color: Colors.white)
+                          : Text(
+                              'Iniciar Sesión',
+                              style: TextStyle(fontSize: 18),
+                            ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white, // Propiedad actualizada
+                        foregroundColor: Colors.pink, // Propiedad actualizada
+                        padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/register');
+                      },
+                      child: Text(
+                        'No tienes cuenta? Regístrate',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: resetPassword,
+                      child: Text(
+                        '¿Olvidaste tu contraseña?',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Contraseña'),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: signIn,
-              child: const Text('Inicio de Sesion'),
-            ),
-            TextButton(
-              onPressed: resetPassword,
-              child: const Text('¿Olvidaste tu contraseña?'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/register');
-              },
-              child: const Text('No tienes cuenta Registrate'),
-            ),
-          ],
+          ),
         ),
       ),
     );
