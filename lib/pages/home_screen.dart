@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:swipe_cards/swipe_cards.dart';
+import 'package:tinder_app_v2/pages/profile_screen.dart';
+import 'package:tinder_app_v2/pages/messages_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -14,13 +16,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  late List<SwipeItem> _swipeItems = <SwipeItem>[];
+  late List<SwipeItem> _swipeItems;
   late MatchEngine _matchEngine;
-  List<String> _names = [];
 
   @override
   void initState() {
     super.initState();
+    _swipeItems = [];
+    _matchEngine = MatchEngine(swipeItems: _swipeItems);
     _loadProfiles();
   }
 
@@ -31,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (snapshot.docs.isEmpty) {
         setState(() {
           _swipeItems = [];
+          _matchEngine = MatchEngine(swipeItems: _swipeItems);
         });
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("No hay perfiles disponibles."),
@@ -39,34 +43,27 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
 
-      _names = snapshot.docs.map((doc) => doc['name'] as String).toList();
+      List<SwipeItem> loadedItems = snapshot.docs.map((doc) {
+        final userData = doc.data() as Map<String, dynamic>;
 
-      _swipeItems = List<SwipeItem>.generate(
-        _names.length,
-        (index) => SwipeItem(
-          content: Content(name: _names[index]),
-          likeAction: () {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text("Liked ${_names[index]}"),
-              duration: Duration(milliseconds: 500),
-            ));
-          },
-          nopeAction: () {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text("Nope ${_names[index]}"),
-              duration: Duration(milliseconds: 500),
-            ));
-          },
-          superlikeAction: () {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text("Superliked ${_names[index]}"),
-              duration: Duration(milliseconds: 500),
-            ));
-          },
-        ),
-      );
+        String name = userData['name']?.toString() ?? 'Usuario desconocido';
+        String photoUrl = (userData.containsKey('photos') &&
+                userData['photos'] != null &&
+                (userData['photos'] as List).isNotEmpty)
+            ? userData['photos'][0]?.toString() ??
+                'https://example.com/default.jpg'
+            : 'https://example.com/default.jpg';
+
+        return SwipeItem(
+          content: Content(name: name, photoUrl: photoUrl),
+          likeAction: () => _showActionSnackBar("Liked $name"),
+          nopeAction: () => _showActionSnackBar("Nope $name"),
+          superlikeAction: () => _showActionSnackBar("Superliked $name"),
+        );
+      }).toList();
 
       setState(() {
+        _swipeItems = loadedItems;
         _matchEngine = MatchEngine(swipeItems: _swipeItems);
       });
     } catch (e) {
@@ -74,10 +71,14 @@ class _HomeScreenState extends State<HomeScreen> {
         content: Text("Error al cargar perfiles: ${e.toString()}"),
         duration: Duration(seconds: 2),
       ));
-      setState(() {
-        _swipeItems = [];
-      });
     }
+  }
+
+  void _showActionSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      duration: Duration(milliseconds: 500),
+    ));
   }
 
   Future<void> signOut() async {
@@ -94,7 +95,10 @@ class _HomeScreenState extends State<HomeScreen> {
         leading: IconButton(
           icon: Icon(FontAwesomeIcons.user, color: Colors.grey),
           onPressed: () {
-            // TODO: Implement profile view
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ProfileScreen()),
+            );
           },
         ),
         title: Icon(FontAwesomeIcons.fire, color: Colors.pink, size: 30),
@@ -103,7 +107,10 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: Icon(FontAwesomeIcons.comments, color: Colors.grey),
             onPressed: () {
-              // TODO: Implement chat view
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => MessagesScreen()),
+              );
             },
           ),
         ],
@@ -116,26 +123,45 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: SwipeCards(
                     matchEngine: _matchEngine,
                     itemBuilder: (BuildContext context, int index) {
-                      return Container(
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: Colors.pinkAccent,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          "Aqui se pondran las viejas",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                      final content = _swipeItems[index].content as Content;
+                      return Stack(
+                        children: [
+                          Container(
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              image: DecorationImage(
+                                image: NetworkImage(content.photoUrl),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ),
-                          textAlign: TextAlign.center,
-                        ),
+                          Positioned(
+                            bottom: 30,
+                            left: 20,
+                            child: Text(
+                              content.name,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                shadows: [
+                                  Shadow(
+                                    blurRadius: 10.0,
+                                    color: Colors.black,
+                                    offset: Offset(2, 2),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       );
                     },
                     onStackFinished: () {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text("Stack Finished"),
+                        content: Text("No más perfiles disponibles"),
                         duration: Duration(milliseconds: 500),
                       ));
                     },
@@ -146,13 +172,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildActionButton(FontAwesomeIcons.xmark, Colors.red, () {
+                      _buildActionButton(FontAwesomeIcons.xmark, Colors.red,
+                          () {
                         _matchEngine.currentItem?.nope();
                       }),
-                      _buildActionButton(FontAwesomeIcons.star, Colors.blue, () {
+                      _buildActionButton(FontAwesomeIcons.star, Colors.blue,
+                          () {
                         _matchEngine.currentItem?.superLike();
                       }),
-                      _buildActionButton(FontAwesomeIcons.heart, Colors.green, () {
+                      _buildActionButton(FontAwesomeIcons.heart, Colors.green,
+                          () {
                         _matchEngine.currentItem?.like();
                       }),
                     ],
@@ -163,7 +192,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildActionButton(IconData icon, Color color, VoidCallback onPressed) {
+  Widget _buildActionButton(
+      IconData icon, Color color, VoidCallback onPressed) {
     return ElevatedButton(
       onPressed: onPressed,
       child: Icon(icon, color: Colors.white),
@@ -178,6 +208,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
 class Content {
   final String name;
+  final String photoUrl;
 
-  Content({required this.name});
+  Content({required this.name, required this.photoUrl});
 }
