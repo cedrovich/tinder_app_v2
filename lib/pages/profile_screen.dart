@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -101,6 +102,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error al guardar el perfil: ${e.toString()}")),
       );
+    }
+  }
+
+  Future<void> _launchPaymentUrl() async {
+    final Uri url =
+        Uri.parse('https://buy.stripe.com/test_bIY6qFf4Ogbm9Ow5kk'); // URL
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
+    } else {
+      throw 'No se pudo abrir $url';
     }
   }
 
@@ -207,6 +218,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             animation: true,
                           ),
                         ),
+                        SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _launchPaymentUrl,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.amber,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                          ),
+                          child: Text(
+                            "Comprar Tinder Gold",
+                            style: TextStyle(fontSize: 16, color: Colors.white),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -254,7 +279,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Mostrar el cuadro de diálogo de edición
   void _showEditProfileDialog() {
     _nameController.text = _name;
     _ageController.text = _age.toString();
