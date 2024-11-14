@@ -23,6 +23,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = true;
   double _profileCompletionPercentage = 0.0;
 
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _ageController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _genderController = TextEditingController();
+  final TextEditingController _photoUrlController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -76,10 +82,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _profileCompletionPercentage = completedFields / 6;
   }
 
+  Future<void> _saveProfile() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        await _firestore.collection('users').doc(user.uid).update({
+          'name': _nameController.text,
+          'age': int.parse(_ageController.text),
+          'description': _descriptionController.text,
+          'gender': _genderController.text,
+          'photos': [_photoUrlController.text],
+          'preferences': _preferences,
+        });
+        Navigator.of(context).pop(); // Cierra el diálogo después de guardar
+        _loadUserProfile(); // Recarga el perfil después de la actualización
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error al guardar el perfil: ${e.toString()}")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[100],
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : CustomScrollView(
@@ -88,7 +116,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   leading: IconButton(
                     icon: Icon(Icons.arrow_back, color: Colors.white),
                     onPressed: () {
-                      Navigator.of(context).pop(); // Regresa a la pantalla anterior
+                      Navigator.of(context)
+                          .pop(); // Regresa a la pantalla anterior
                     },
                   ),
                   expandedHeight: 300.0,
@@ -98,18 +127,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     title: Text("$_name, $_age",
                         style: TextStyle(
                             color: Colors.white, fontWeight: FontWeight.bold)),
-                    background: _photoUrl.isNotEmpty
-                        ? Image.network(_photoUrl, fit: BoxFit.cover)
-                        : Container(
-                            color: Colors.grey,
-                            child: Icon(Icons.person,
-                                size: 100, color: Colors.white)),
+                    background: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        _photoUrl.isNotEmpty
+                            ? Image.network(_photoUrl, fit: BoxFit.cover)
+                            : Container(
+                                color: Colors.grey,
+                                child: Icon(Icons.person,
+                                    size: 100, color: Colors.white)),
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                              colors: [
+                                Colors.black54,
+                                Colors.transparent,
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   actions: [
                     IconButton(
                       icon: Icon(Icons.edit, color: Colors.white),
                       onPressed: () {
-                        // Acción de editar perfil
+                        _showEditProfileDialog();
                       },
                     ),
                   ],
@@ -120,112 +166,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Card(
-                          elevation: 4,
-                          child: Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Sobre mí",
-                                  style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87),
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  _description,
-                                  style: TextStyle(
-                                      fontSize: 16, color: Colors.black54),
-                                ),
-                              ],
-                            ),
+                        _buildCard("Sobre mí", Text(_description)),
+                        SizedBox(height: 16),
+                        _buildCard(
+                          "Detalles básicos",
+                          Column(
+                            children: [
+                              _buildDetailRow(Icons.cake, "Edad", "$_age años"),
+                              _buildDetailRow(Icons.person, "Género", _gender),
+                            ],
                           ),
                         ),
                         SizedBox(height: 16),
-                        Card(
-                          elevation: 4,
-                          child: Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Detalles básicos",
-                                  style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87),
-                                ),
-                                SizedBox(height: 8),
-                                _buildDetailRow(
-                                    Icons.cake, "Edad", "$_age años"),
-                                _buildDetailRow(
-                                    Icons.person, "Género", _gender),
-                              ],
-                            ),
+                        _buildCard(
+                          "Intereses",
+                          Wrap(
+                            spacing: 8.0,
+                            runSpacing: 4.0,
+                            children: _preferences.map((preference) {
+                              return Chip(
+                                label: Text(preference),
+                                backgroundColor: Colors.pink[100],
+                                labelStyle: TextStyle(color: Colors.pink[800]),
+                              );
+                            }).toList(),
                           ),
                         ),
                         SizedBox(height: 16),
-                        Card(
-                          elevation: 4,
-                          child: Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Intereses",
-                                  style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87),
-                                ),
-                                SizedBox(height: 8),
-                                Wrap(
-                                  spacing: 8.0,
-                                  runSpacing: 4.0,
-                                  children: _preferences.map((preference) {
-                                    return Chip(
-                                      label: Text(preference),
-                                      backgroundColor: Colors.pink[100],
-                                      labelStyle:
-                                          TextStyle(color: Colors.pink[800]),
-                                    );
-                                  }).toList(),
-                                ),
-                              ],
+                        _buildCard(
+                          "Perfil completado",
+                          LinearPercentIndicator(
+                            lineHeight: 20.0,
+                            percent: _profileCompletionPercentage,
+                            center: Text(
+                              "${(_profileCompletionPercentage * 100).toInt()}%",
+                              style: TextStyle(color: Colors.white),
                             ),
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        Card(
-                          elevation: 4,
-                          child: Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Perfil completado",
-                                  style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87),
-                                ),
-                                SizedBox(height: 8),
-                                LinearPercentIndicator(
-                                  lineHeight: 20.0,
-                                  percent: _profileCompletionPercentage,
-                                  center: Text(
-                                      "${(_profileCompletionPercentage * 100).toInt()}%"),
-                                  progressColor: Colors.pink,
-                                  backgroundColor: Colors.pink[100],
-                                ),
-                              ],
-                            ),
+                            progressColor: Colors.pink,
+                            backgroundColor: Colors.pink[100],
+                            animation: true,
                           ),
                         ),
                       ],
@@ -234,6 +213,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ],
             ),
+    );
+  }
+
+  Widget _buildCard(String title, Widget content) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
+      elevation: 5,
+      margin: EdgeInsets.symmetric(horizontal: 5),
+      child: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            content,
+          ],
+        ),
+      ),
     );
   }
 
@@ -249,6 +250,84 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Spacer(),
           Text(value, style: TextStyle(fontSize: 16)),
         ],
+      ),
+    );
+  }
+
+  // Mostrar el cuadro de diálogo de edición
+  void _showEditProfileDialog() {
+    _nameController.text = _name;
+    _ageController.text = _age.toString();
+    _descriptionController.text = _description;
+    _genderController.text = _gender;
+    _photoUrlController.text = _photoUrl;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          title: Center(
+            child: Text(
+              "Editar Perfil",
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildTextField("Nombre", _nameController),
+                _buildTextField("Edad", _ageController, TextInputType.number),
+                _buildTextField("Descripción", _descriptionController),
+                _buildTextField("Género", _genderController),
+                _buildTextField("URL de Foto", _photoUrlController),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                "Cancelar",
+                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: _saveProfile,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.pink,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+              ),
+              child: Text("Guardar", style: TextStyle(fontSize: 16)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildTextField(String label, TextEditingController controller,
+      [TextInputType? type]) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 8.0),
+      child: TextField(
+        controller: controller,
+        keyboardType: type,
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: TextStyle(color: Colors.pink),
+          filled: true,
+          fillColor: Colors.grey[100],
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+        ),
       ),
     );
   }

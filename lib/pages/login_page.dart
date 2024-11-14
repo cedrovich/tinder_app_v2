@@ -81,6 +81,7 @@ class _LoginPageState extends State<LoginPage> {
             TextField(
               controller: emailController,
               decoration: const InputDecoration(labelText: 'Correo'),
+              keyboardType: TextInputType.emailAddress,
             ),
           ],
         ),
@@ -96,9 +97,11 @@ class _LoginPageState extends State<LoginPage> {
               if (email.isNotEmpty) {
                 try {
                   await _auth.sendPasswordResetEmail(email: email);
-                  showConfirmationDialog('Se ha enviado un correo para restablecer tu contraseña.');
+                  showConfirmationDialog(
+                      'Se ha enviado un correo para restablecer tu contraseña.');
                 } catch (e) {
-                  showErrorDialog('Error al enviar el correo de recuperación.');
+                  showErrorDialog(
+                      'Error al enviar el correo de recuperación. Verifica que el correo esté registrado.');
                 }
               } else {
                 showErrorDialog('Por favor, introduce un correo válido.');
@@ -237,16 +240,16 @@ class _LoginPageState extends State<LoginPage> {
                               style: TextStyle(fontSize: 18),
                             ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white, // Propiedad actualizada
-                        foregroundColor: Colors.pink, // Propiedad actualizada
-                        padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.pink,
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
                       ),
                     ),
                     SizedBox(height: 16),
-                    
                     TextButton(
                       onPressed: () {
                         Navigator.pushNamed(context, '/register');

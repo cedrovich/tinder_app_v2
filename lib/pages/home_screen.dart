@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -7,7 +6,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:swipe_cards/swipe_cards.dart';
 import 'package:tinder_app_v2/pages/profile_screen.dart';
 import 'package:tinder_app_v2/pages/messages_screen.dart';
-import 'package:tinder_app_v2/pages/info_profile.dart'; // Add this import
+import 'package:tinder_app_v2/pages/info_profile.dart';
+import 'package:tinder_app_v2/models/content.dart'; // Asegúrate de importar desde content.dart
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -56,9 +56,20 @@ class _HomeScreenState extends State<HomeScreen> {
             : 'https://example.com/default.jpg';
         String? bio = userData['bio']?.toString();
         int? age = userData['age'] as int?;
+        String? gender = userData['gender']?.toString();
+        List<String>? preferences = userData['preferences'] != null
+            ? List<String>.from(userData['preferences'])
+            : [];
 
         return SwipeItem(
-          content: Content(name: name, photoUrl: photoUrl, bio: bio, age: age),
+          content: Content(
+            name: name,
+            photoUrl: photoUrl,
+            bio: bio, // Asegúrate de que bio esté asignado aquí
+            age: age,
+            gender: gender,
+            preferences: preferences,
+          ),
           likeAction: () => _showTemporaryMessage("Liked $name"),
           nopeAction: () => _showTemporaryMessage("Nope $name"),
           superlikeAction: () => _showTemporaryMessage("Superliked $name"),
@@ -142,7 +153,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           Container(
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                              borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(20),
+                                  topRight: Radius.circular(20)),
                               image: DecorationImage(
                                 image: NetworkImage(content.photoUrl),
                                 fit: BoxFit.cover,
@@ -184,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Material(
                       elevation: 4,
                       borderRadius: BorderRadius.circular(8),
-                      color: const Color.fromARGB(0, 255, 255, 255).withOpacity(0),
+                      color: Colors.transparent,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                             vertical: 8.0, horizontal: 16.0),
@@ -207,13 +220,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildActionButton(FontAwesomeIcons.xmark, Colors.red, () {
+                      _buildActionButton(FontAwesomeIcons.xmark, Colors.red,
+                          () {
                         _matchEngine.currentItem?.nope();
                       }),
-                      _buildActionButton(FontAwesomeIcons.star, Colors.blue, () {
+                      _buildActionButton(FontAwesomeIcons.star, Colors.blue,
+                          () {
                         _matchEngine.currentItem?.superLike();
                       }),
-                      _buildActionButton(FontAwesomeIcons.heart, Colors.green, () {
+                      _buildActionButton(FontAwesomeIcons.heart, Colors.green,
+                          () {
                         _matchEngine.currentItem?.like();
                       }),
                     ],
@@ -236,13 +252,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-}
-
-class Content {
-  final String name;
-  final String photoUrl;
-  final String? bio;
-  final int? age;
-
-  Content({required this.name, required this.photoUrl, this.bio, this.age});
 }
