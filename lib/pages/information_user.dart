@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class InformationUserPage extends StatefulWidget {
   @override
@@ -14,6 +17,7 @@ class _InformationUserPageState extends State<InformationUserPage> {
 
   final TextEditingController descriptionController = TextEditingController();
   List<String> photos = [];
+  final ImagePicker _picker = ImagePicker();
 
   final List<String> preferenceOptions = [
     'Rock', 'Pop', 'Jazz', 'Clásica', 'Reguetón', 'Electrónica',
@@ -58,15 +62,35 @@ class _InformationUserPageState extends State<InformationUserPage> {
 
         Navigator.pushReplacementNamed(context, '/home');
       } catch (e) {
-        showErrorDialog('Error al guardar la información');
+        showErrorDialog('Error al guardar la información: $e');
       }
     }
   }
 
-  void addFakePhoto() {
-    setState(() {
-      photos.add("https://example.com/photo.jpg");
-    });
+  Future<void> addPhoto() async {
+    try {
+      final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile == null) {
+        showErrorDialog("No se seleccionó ninguna imagen.");
+        return;
+      }
+
+      File image = File(pickedFile.path);
+      final storage = Supabase.instance.client.storage;
+      final fileName = pickedFile.path.split('/').last;
+
+      final response = await storage.from('PhotosTAV2').upload(fileName, image);
+      if (response.error == null) {
+        final publicUrl = storage.from('PhotosTAV2').getPublicUrl(fileName);
+        setState(() {
+          photos.add(publicUrl);
+        });
+      } else {
+        showErrorDialog('Error al subir la imagen: ${response.error!.message}');
+      }
+    } catch (e) {
+      showErrorDialog('Error al seleccionar o subir la imagen: $e');
+    }
   }
 
   void showConfirmationDialog(String message) {
@@ -153,7 +177,7 @@ class _InformationUserPageState extends State<InformationUserPage> {
                   ),
                   SizedBox(height: 16),
                   ElevatedButton.icon(
-                    onPressed: addFakePhoto,
+                    onPressed: addPhoto,
                     icon: Icon(Icons.add_a_photo, color: Colors.pink),
                     label: Text('Agregar Foto', style: TextStyle(color: Colors.pink)),
                     style: ElevatedButton.styleFrom(
@@ -228,4 +252,8 @@ class _InformationUserPageState extends State<InformationUserPage> {
       ),
     );
   }
+}
+
+extension on String {
+  get error => null;
 }

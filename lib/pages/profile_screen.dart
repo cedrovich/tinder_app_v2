@@ -3,6 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:io';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -14,6 +17,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final ImagePicker _picker = ImagePicker();
 
   String _name = "";
   int _age = 0;
@@ -71,6 +75,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _pickAndUploadImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile == null) {
+      return; // El usuario no seleccionó ninguna imagen
+    }
+
+    try {
+      File image = File(pickedFile.path);
+      final storage = Supabase.instance.client.storage;
+      final fileName = pickedFile.path.split('/').last;
+
+      // Subir la imagen a Supabase permitiendo imágenes repetidas
+      final response = await storage.from('PhotosTAV2').upload(fileName, image, fileOptions: const FileOptions(upsert: true));
+      if (response.error == null) {
+        final publicUrl = storage.from('PhotosTAV2').getPublicUrl(fileName);
+        
+        setState(() {
+          _photoUrl = publicUrl;
+        });
+
+        // Actualizar la URL de la foto en Firestore
+        final user = _auth.currentUser;
+        if (user != null) {
+          await _firestore.collection('users').doc(user.uid).update({
+            'photos': [_photoUrl],
+          });
+        }
+      } else {
+        _showErrorDialog('Error al subir la imagen: ${response.error!.message}');
+      }
+    } catch (e) {
+      _showErrorDialog('Error al seleccionar o subir la imagen: $e');
+    }
+  }
+
   void _calculateProfileCompletion() {
     int completedFields = 0;
     if (_name.isNotEmpty) completedFields++;
@@ -92,7 +131,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           'age': int.parse(_ageController.text),
           'description': _descriptionController.text,
           'gender': _genderController.text,
-          'photos': [_photoUrlController.text],
+          'photos': [_photoUrl],
           'preferences': _preferences,
         });
         Navigator.of(context).pop(); // Cierra el diálogo después de guardar
@@ -105,14 +144,110 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> _launchPaymentUrl() async {
-    final Uri url =
-        Uri.parse('https://buy.stripe.com/test_bIY6qFf4Ogbm9Ow5kk'); // URL
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url);
-    } else {
-      throw 'No se pudo abrir $url';
-    }
+  void _showEditProfileDialog() {
+    _nameController.text = _name;
+    _ageController.text = _age.toString();
+    _descriptionController.text = _description;
+    _genderController.text = _gender;
+    _photoUrlController.text = _photoUrl;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          title: Center(
+            child: Text(
+              "Editar Perfil",
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                GestureDetector(
+                  onTap: _pickAndUploadImage,
+                  child: CircleAvatar(
+                    radius: 40,
+                    backgroundImage: _photoUrl.isNotEmpty
+                        ? NetworkImage(_photoUrl)
+                        : null,
+                    child: _photoUrl.isEmpty
+                        ? Icon(Icons.add_a_photo, size: 40, color: Colors.white)
+                        : null,
+                  ),
+                ),
+                SizedBox(height: 16),
+                _buildTextField("Nombre", _nameController),
+                _buildTextField("Edad", _ageController, TextInputType.number),
+                _buildTextField("Descripción", _descriptionController),
+                _buildTextField("Género", _genderController),
+                _buildTextField("URL de Foto", _photoUrlController),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                "Cancelar",
+                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: _saveProfile,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.pink,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+              ),
+              child: Text("Guardar", style: TextStyle(fontSize: 16)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildTextField(String label, TextEditingController controller,
+      [TextInputType? type]) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 8.0),
+      child: TextField(
+        controller: controller,
+        keyboardType: type,
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: TextStyle(color: Colors.pink),
+          filled: true,
+          fillColor: Colors.grey[100],
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -127,8 +262,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   leading: IconButton(
                     icon: Icon(Icons.arrow_back, color: Colors.white),
                     onPressed: () {
-                      Navigator.of(context)
-                          .pop(); // Regresa a la pantalla anterior
+                      Navigator.of(context).pop();
                     },
                   ),
                   expandedHeight: 300.0,
@@ -241,6 +375,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Future<void> _launchPaymentUrl() async {
+    final Uri url =
+        Uri.parse('https://buy.stripe.com/test_bIY6qFf4Ogbm9Ow5kk'); // URL
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
+    } else {
+      throw 'No se pudo abrir $url';
+    }
+  }
+
   Widget _buildCard(String title, Widget content) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
@@ -278,81 +422,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
+}
 
-  void _showEditProfileDialog() {
-    _nameController.text = _name;
-    _ageController.text = _age.toString();
-    _descriptionController.text = _description;
-    _genderController.text = _gender;
-    _photoUrlController.text = _photoUrl;
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20.0),
-          ),
-          title: Center(
-            child: Text(
-              "Editar Perfil",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              children: [
-                _buildTextField("Nombre", _nameController),
-                _buildTextField("Edad", _ageController, TextInputType.number),
-                _buildTextField("Descripción", _descriptionController),
-                _buildTextField("Género", _genderController),
-                _buildTextField("URL de Foto", _photoUrlController),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(
-                "Cancelar",
-                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: _saveProfile,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pink,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-              ),
-              child: Text("Guardar", style: TextStyle(fontSize: 16)),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildTextField(String label, TextEditingController controller,
-      [TextInputType? type]) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 8.0),
-      child: TextField(
-        controller: controller,
-        keyboardType: type,
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: TextStyle(color: Colors.pink),
-          filled: true,
-          fillColor: Colors.grey[100],
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-        ),
-      ),
-    );
-  }
+extension on String {
+  get error => null;
 }
