@@ -16,9 +16,11 @@ class _InformationUserPageState extends State<InformationUserPage> {
   List<String> photos = [];
 
   final List<String> preferenceOptions = [
-    'Rock', 'Pop', 'Jazz', 'Clásica', 'Reguetón', 'Electrónica', 'Hip Hop', 'Deportes', 'Cine', 'Viajes', 'Tecnología'
+    'Rock', 'Pop', 'Jazz', 'Clásica', 'Reguetón', 'Electrónica',
+    'Hip Hop', 'Deportes', 'Cine', 'Viajes', 'Tecnología', 'Trans',
+    'Gay', 'Futbol', 'Basquetbol', 'AnuelAA', 'Bad Bunny', 'Taylor Swift'
   ];
-  
+
   Map<String, bool> selectedPreferences = {};
 
   @override

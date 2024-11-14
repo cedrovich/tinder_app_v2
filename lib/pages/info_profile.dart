@@ -1,67 +1,40 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'home_screen.dart'; // Importa donde tienes la clase Content
 
-class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+class InfoProfile extends StatefulWidget {
+  final Content profile; // Recibe el objeto Content en lugar de userId
+
+  const InfoProfile({Key? key, required this.profile}) : super(key: key);
 
   @override
-  _ProfileScreenState createState() => _ProfileScreenState();
+  _InfoProfileState createState() => _InfoProfileState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
+class _InfoProfileState extends State<InfoProfile> {
   String _name = "";
   int _age = 0;
   String _description = "";
   String _gender = "";
-  String _photoUrl = "";
+  List<String> _photos = [];
   List<String> _preferences = [];
-  bool _isLoading = true;
   double _profileCompletionPercentage = 0.0;
 
   @override
   void initState() {
     super.initState();
-    _loadUserProfile();
+    _loadProfileData();
   }
 
-  Future<void> _loadUserProfile() async {
-    try {
-      final user = _auth.currentUser;
-      if (user != null) {
-        final snapshot =
-            await _firestore.collection('users').doc(user.uid).get();
-        if (snapshot.exists) {
-          setState(() {
-            _name = snapshot['name'] ?? "Sin nombre";
-            _age = snapshot['age'] ?? 0;
-            _description = snapshot['description'] ?? "Sin descripción";
-            _gender = snapshot['gender'] ?? "Sin especificar";
-            _photoUrl = snapshot['photos']?.isNotEmpty == true
-                ? snapshot['photos'][0]
-                : "";
-            _preferences = List<String>.from(snapshot['preferences'] ?? []);
-            _isLoading = false;
-            _calculateProfileCompletion();
-          });
-        } else {
-          setState(() {
-            _isLoading = false;
-          });
-        }
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Error al cargar el perfil: ${e.toString()}"),
-      ));
-      setState(() {
-        _isLoading = false;
-      });
-    }
+  void _loadProfileData() {
+    setState(() {
+      _name = widget.profile.name;
+      _age = widget.profile.age ?? 0;
+      _description = widget.profile.bio ?? "Sin descripción";
+      _photos = [widget.profile.photoUrl]; // Foto principal
+      _preferences = widget.profile.bio != null ? [widget.profile.bio!] : []; // Ejemplo de preferencias usando bio
+      _calculateProfileCompletion();
+    });
   }
 
   void _calculateProfileCompletion() {
@@ -70,7 +43,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (_age > 0) completedFields++;
     if (_description.isNotEmpty) completedFields++;
     if (_gender.isNotEmpty) completedFields++;
-    if (_photoUrl.isNotEmpty) completedFields++;
+    if (_photos.isNotEmpty) completedFields++;
     if (_preferences.isNotEmpty) completedFields++;
 
     _profileCompletionPercentage = completedFields / 6;
@@ -80,17 +53,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: _isLoading
+      body: _photos.isEmpty
           ? Center(child: CircularProgressIndicator())
           : CustomScrollView(
               slivers: [
                 SliverAppBar(
-                  leading: IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () {
-                      Navigator.of(context).pop(); // Regresa a la pantalla anterior
-                    },
-                  ),
                   expandedHeight: 300.0,
                   floating: false,
                   pinned: true,
@@ -98,21 +65,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     title: Text("$_name, $_age",
                         style: TextStyle(
                             color: Colors.white, fontWeight: FontWeight.bold)),
-                    background: _photoUrl.isNotEmpty
-                        ? Image.network(_photoUrl, fit: BoxFit.cover)
-                        : Container(
-                            color: Colors.grey,
-                            child: Icon(Icons.person,
-                                size: 100, color: Colors.white)),
+                    background: Image.network(_photos[0], fit: BoxFit.cover),
                   ),
-                  actions: [
-                    IconButton(
-                      icon: Icon(Icons.edit, color: Colors.white),
-                      onPressed: () {
-                        // Acción de editar perfil
-                      },
-                    ),
-                  ],
                 ),
                 SliverToBoxAdapter(
                   child: Padding(
