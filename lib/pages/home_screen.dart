@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -33,6 +34,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadProfiles() async {
     try {
+      final currentUser = _auth.currentUser;
+      if (currentUser == null) return;
+
       final snapshot = await _firestore.collection('users').get();
 
       if (snapshot.docs.isEmpty) {
@@ -44,34 +48,41 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
 
-      List<SwipeItem> loadedItems = snapshot.docs.map((doc) {
-        final userData = doc.data() as Map<String, dynamic>;
+      // Filtrar y mezclar perfiles
+      List<SwipeItem> loadedItems = snapshot.docs
+          .where((doc) => doc.id != currentUser.uid) // Excluye al usuario actual
+          .map((doc) {
+            final userData = doc.data() as Map<String, dynamic>;
 
-        String name = userData['name']?.toString() ?? 'Usuario desconocido';
-        List<String> photoUrls = userData['photos'] != null
-            ? List<String>.from(userData['photos'])
-            : ['https://example.com/default.jpg'];
-        String description = userData['description']?.toString() ?? 'Sin descripción'; // Cambiado de bio a description
-        int? age = userData['age'] as int?;
-        String? gender = userData['gender']?.toString();
-        List<String>? preferences = userData['preferences'] != null
-            ? List<String>.from(userData['preferences'])
-            : [];
+            String name = userData['name']?.toString() ?? 'Usuario desconocido';
+            List<String> photoUrls = userData['photos'] != null
+                ? List<String>.from(userData['photos'])
+                : ['https://example.com/default.jpg'];
+            String description = userData['description']?.toString() ?? 'Sin descripción';
+            int? age = userData['age'] as int?;
+            String? gender = userData['gender']?.toString();
+            List<String>? preferences = userData['preferences'] != null
+                ? List<String>.from(userData['preferences'])
+                : [];
 
-        return SwipeItem(
-          content: Content(
-            name: name,
-            photoUrl: photoUrls, // Aquí usamos la lista completa de fotos
-            description: description, // Asignamos description correctamente
-            age: age,
-            gender: gender,
-            preferences: preferences,
-          ),
-          likeAction: () => _showTemporaryMessage("Liked $name"),
-          nopeAction: () => _showTemporaryMessage("Nope $name"),
-          superlikeAction: () => _showTemporaryMessage("Superliked $name"),
-        );
-      }).toList();
+            return SwipeItem(
+              content: Content(
+                name: name,
+                photoUrl: photoUrls,
+                description: description,
+                age: age,
+                gender: gender,
+                preferences: preferences,
+              ),
+              likeAction: () => _showTemporaryMessage("Liked $name"),
+              nopeAction: () => _showTemporaryMessage("Nope $name"),
+              superlikeAction: () => _showTemporaryMessage("Superliked $name"),
+            );
+          })
+          .toList();
+
+      // Mezclar perfiles aleatoriamente
+      loadedItems.shuffle(Random());
 
       setState(() {
         _swipeItems = loadedItems;
