@@ -7,7 +7,7 @@ import 'package:swipe_cards/swipe_cards.dart';
 import 'package:tinder_app_v2/pages/profile_screen.dart';
 import 'package:tinder_app_v2/pages/messages_screen.dart';
 import 'package:tinder_app_v2/pages/info_profile.dart';
-import 'package:tinder_app_v2/models/content.dart'; // Asegúrate de importar desde content.dart
+import 'package:tinder_app_v2/models/content.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -48,13 +48,10 @@ class _HomeScreenState extends State<HomeScreen> {
         final userData = doc.data() as Map<String, dynamic>;
 
         String name = userData['name']?.toString() ?? 'Usuario desconocido';
-        String photoUrl = (userData.containsKey('photos') &&
-                userData['photos'] != null &&
-                (userData['photos'] as List).isNotEmpty)
-            ? userData['photos'][0]?.toString() ??
-                'https://example.com/default.jpg'
-            : 'https://example.com/default.jpg';
-        String? bio = userData['bio']?.toString();
+        List<String> photoUrls = userData['photos'] != null
+            ? List<String>.from(userData['photos'])
+            : ['https://example.com/default.jpg'];
+        String description = userData['description']?.toString() ?? 'Sin descripción'; // Cambiado de bio a description
         int? age = userData['age'] as int?;
         String? gender = userData['gender']?.toString();
         List<String>? preferences = userData['preferences'] != null
@@ -64,8 +61,8 @@ class _HomeScreenState extends State<HomeScreen> {
         return SwipeItem(
           content: Content(
             name: name,
-            photoUrl: photoUrl,
-            bio: bio, // Asegúrate de que bio esté asignado aquí
+            photoUrl: photoUrls, // Aquí usamos la lista completa de fotos
+            description: description, // Asignamos description correctamente
             age: age,
             gender: gender,
             preferences: preferences,
@@ -157,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   topLeft: Radius.circular(20),
                                   topRight: Radius.circular(20)),
                               image: DecorationImage(
-                                image: NetworkImage(content.photoUrl),
+                                image: NetworkImage(content.photoUrl.first),
                                 fit: BoxFit.cover,
                               ),
                             ),
@@ -220,15 +217,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildActionButton(FontAwesomeIcons.xmark, Colors.red,
+                      _buildActionButton(FontAwesomeIcons.xmark, const Color.fromARGB(59, 244, 67, 54),
                           () {
                         _matchEngine.currentItem?.nope();
                       }),
-                      _buildActionButton(FontAwesomeIcons.star, Colors.blue,
+                      _buildActionButton(FontAwesomeIcons.star, const Color.fromARGB(56, 33, 149, 243),
                           () {
                         _matchEngine.currentItem?.superLike();
                       }),
-                      _buildActionButton(FontAwesomeIcons.heart, Colors.green,
+                      _buildActionButton(FontAwesomeIcons.heart, const Color.fromARGB(53, 76, 175, 79),
                           () {
                         _matchEngine.currentItem?.like();
                       }),

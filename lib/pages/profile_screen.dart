@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'package:tinder_app_v2/pages/login_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -23,7 +24,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int _age = 0;
   String _description = "";
   String _gender = "";
-  String _photoUrl = "";
+  List<String> _photoUrls = [];
   List<String> _preferences = [];
   bool _isLoading = true;
   double _profileCompletionPercentage = 0.0;
@@ -32,7 +33,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _ageController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _genderController = TextEditingController();
-  final TextEditingController _photoUrlController = TextEditingController();
 
   @override
   void initState() {
@@ -52,9 +52,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _age = snapshot['age'] ?? 0;
             _description = snapshot['description'] ?? "Sin descripción";
             _gender = snapshot['gender'] ?? "Sin especificar";
-            _photoUrl = snapshot['photos']?.isNotEmpty == true
-                ? snapshot['photos'][0]
-                : "";
+            _photoUrls = List<String>.from(snapshot['photos'] ?? []);
             _preferences = List<String>.from(snapshot['preferences'] ?? []);
             _isLoading = false;
             _calculateProfileCompletion();
@@ -78,7 +76,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _pickAndUploadImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile == null) {
-      return; // El usuario no seleccionó ninguna imagen
+      return;
     }
 
     try {
@@ -86,20 +84,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final storage = Supabase.instance.client.storage;
       final fileName = pickedFile.path.split('/').last;
 
-      // Subir la imagen a Supabase permitiendo imágenes repetidas
       final response = await storage.from('PhotosTAV2').upload(fileName, image, fileOptions: const FileOptions(upsert: true));
       if (response.error == null) {
         final publicUrl = storage.from('PhotosTAV2').getPublicUrl(fileName);
-        
+
         setState(() {
-          _photoUrl = publicUrl;
+          _photoUrls.add(publicUrl);
         });
 
-        // Actualizar la URL de la foto en Firestore
         final user = _auth.currentUser;
         if (user != null) {
           await _firestore.collection('users').doc(user.uid).update({
-            'photos': [_photoUrl],
+            'photos': _photoUrls,
           });
         }
       } else {
@@ -116,7 +112,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (_age > 0) completedFields++;
     if (_description.isNotEmpty) completedFields++;
     if (_gender.isNotEmpty) completedFields++;
-    if (_photoUrl.isNotEmpty) completedFields++;
+    if (_photoUrls.isNotEmpty) completedFields++;
     if (_preferences.isNotEmpty) completedFields++;
 
     _profileCompletionPercentage = completedFields / 6;
@@ -131,11 +127,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           'age': int.parse(_ageController.text),
           'description': _descriptionController.text,
           'gender': _genderController.text,
-          'photos': [_photoUrl],
+          'photos': _photoUrls,
           'preferences': _preferences,
         });
-        Navigator.of(context).pop(); // Cierra el diálogo después de guardar
-        _loadUserProfile(); // Recarga el perfil después de la actualización
+        Navigator.of(context).pop();
+        _loadUserProfile();
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -149,7 +145,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _ageController.text = _age.toString();
     _descriptionController.text = _description;
     _genderController.text = _gender;
-    _photoUrlController.text = _photoUrl;
 
     showDialog(
       context: context,
@@ -171,10 +166,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onTap: _pickAndUploadImage,
                   child: CircleAvatar(
                     radius: 40,
-                    backgroundImage: _photoUrl.isNotEmpty
-                        ? NetworkImage(_photoUrl)
+                    backgroundImage: _photoUrls.isNotEmpty
+                        ? NetworkImage(_photoUrls.last)
                         : null,
-                    child: _photoUrl.isEmpty
+                    child: _photoUrls.isEmpty
                         ? Icon(Icons.add_a_photo, size: 40, color: Colors.white)
                         : null,
                   ),
@@ -184,7 +179,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _buildTextField("Edad", _ageController, TextInputType.number),
                 _buildTextField("Descripción", _descriptionController),
                 _buildTextField("Género", _genderController),
-                _buildTextField("URL de Foto", _photoUrlController),
               ],
             ),
           ),
@@ -234,6 +228,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Widget _buildPhotoList() {
+    final galleryPhotos = _photoUrls.length > 1 ? _photoUrls.sublist(0, _photoUrls.length - 1) : [];
+
+    return galleryPhotos.isEmpty
+        ? Text("No has subido fotos adicionales.")
+        : ListView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            itemCount: galleryPhotos.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(15),
+                  child: Image.network(galleryPhotos[index], fit: BoxFit.cover),
+                ),
+              );
+            },
+          );
+  }
+
+  Future<void> _logout() async {
+  await _auth.signOut();
+  Navigator.of(context).pushAndRemoveUntil(
+    MaterialPageRoute(builder: (context) => LoginPage()), // Reemplaza LoginPage con el widget correspondiente para tu pantalla de inicio de sesión
+    (Route<dynamic> route) => false,
+  );
+}
+
+
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
@@ -275,8 +299,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     background: Stack(
                       fit: StackFit.expand,
                       children: [
-                        _photoUrl.isNotEmpty
-                            ? Image.network(_photoUrl, fit: BoxFit.cover)
+                        _photoUrls.isNotEmpty
+                            ? Image.network(_photoUrls.last, fit: BoxFit.cover)
                             : Container(
                                 color: Colors.grey,
                                 child: Icon(Icons.person,
@@ -307,7 +331,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.all(16.0),
+                    padding: EdgeInsets.all(8.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -323,20 +347,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                         SizedBox(height: 16),
-                        _buildCard(
-                          "Intereses",
-                          Wrap(
-                            spacing: 8.0,
-                            runSpacing: 4.0,
-                            children: _preferences.map((preference) {
-                              return Chip(
-                                label: Text(preference),
-                                backgroundColor: Colors.pink[100],
-                                labelStyle: TextStyle(color: Colors.pink[800]),
-                              );
-                            }).toList(),
-                          ),
-                        ),
+                        _buildCard("Galería de Fotos", _buildPhotoList()),
                         SizedBox(height: 16),
                         _buildCard(
                           "Perfil completado",
@@ -352,19 +363,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             animation: true,
                           ),
                         ),
-                        SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _launchPaymentUrl,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.amber,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10.0),
+                        SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            ElevatedButton(
+                              onPressed: _launchPaymentUrl,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.amber,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                              ),
+                              child: Text(
+                                "Comprar Tinder Gold",
+                                style: TextStyle(fontSize: 12, color: Colors.white),
+                              ),
                             ),
-                          ),
-                          child: Text(
-                            "Comprar Tinder Gold",
-                            style: TextStyle(fontSize: 16, color: Colors.white),
-                          ),
+                            ElevatedButton(
+                              onPressed: _logout,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                              ),
+                              child: Text(
+                                "Cerrar Sesión",
+                                style: TextStyle(fontSize: 12, color: Colors.white),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -377,7 +406,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _launchPaymentUrl() async {
     final Uri url =
-        Uri.parse('https://buy.stripe.com/test_bIY6qFf4Ogbm9Ow5kk'); // URL
+        Uri.parse('https://buy.stripe.com/test_bIY6qFf4Ogbm9Ow5kk');
     if (await canLaunchUrl(url)) {
       await launchUrl(url);
     } else {

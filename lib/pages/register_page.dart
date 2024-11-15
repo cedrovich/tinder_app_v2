@@ -21,8 +21,10 @@ class _RegisterPageState extends State<RegisterPage> {
 
   String? selectedGender;
   final List<String> genderOptions = ['Masculino', 'Femenino', 'Otro'];
-
+  bool _isPasswordVisible = false;
   bool _isLoading = false;
+
+  String? _ageErrorMessage; // Variable para almacenar el mensaje de error de la edad
 
   Future<void> register() async {
     setState(() {
@@ -35,7 +37,7 @@ class _RegisterPageState extends State<RegisterPage> {
     final password = passwordController.text.trim();
 
     if (name.isEmpty || ageText.isEmpty || email.isEmpty || password.isEmpty || selectedGender == null) {
-      showErrorDialog('Todos los campos son obligatorios');
+      _showErrorDialog('Todos los campos son obligatorios');
       setState(() {
         _isLoading = false;
       });
@@ -44,11 +46,15 @@ class _RegisterPageState extends State<RegisterPage> {
 
     int? age = int.tryParse(ageText);
     if (age == null || age < 18) {
-      showErrorDialog('Debes tener al menos 18 años para registrarte');
       setState(() {
+        _ageErrorMessage = 'Debes tener al menos 18 años para registrarte';
         _isLoading = false;
       });
       return;
+    } else {
+      setState(() {
+        _ageErrorMessage = null;
+      });
     }
 
     try {
@@ -64,7 +70,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
       Navigator.pushReplacementNamed(context, '/informationUser');
     } catch (e) {
-      showErrorDialog('Error: ${e.toString()}');
+      _showErrorDialog('Error: ${e.toString()}');
     }
 
     setState(() {
@@ -72,7 +78,22 @@ class _RegisterPageState extends State<RegisterPage> {
     });
   }
 
-  void showErrorDialog(String message) {
+  void _validateAge() {
+    final ageText = ageController.text.trim();
+    int? age = int.tryParse(ageText);
+
+    if (age != null && age < 18) {
+      setState(() {
+        _ageErrorMessage = 'Debes tener al menos 18 años para registrarte';
+      });
+    } else {
+      setState(() {
+        _ageErrorMessage = null;
+      });
+    }
+  }
+
+  void _showErrorDialog(String message) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -124,11 +145,25 @@ class _RegisterPageState extends State<RegisterPage> {
                     SizedBox(height: 12),
                     _buildTextField(nameController, 'Nombre', Icons.person),
                     SizedBox(height: 12),
-                    _buildTextField(ageController, 'Edad', Icons.cake, keyboardType: TextInputType.number),
+                    _buildTextField(
+                      ageController,
+                      'Edad',
+                      Icons.cake,
+                      keyboardType: TextInputType.number,
+                      onEditingComplete: _validateAge,
+                    ),
+                    if (_ageErrorMessage != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Text(
+                          _ageErrorMessage!,
+                          style: TextStyle(color: Colors.black, fontSize: 12),
+                        ),
+                      ),
                     SizedBox(height: 12),
                     _buildTextField(emailController, 'Correo', Icons.email, keyboardType: TextInputType.emailAddress),
                     SizedBox(height: 12),
-                    _buildTextField(passwordController, 'Contraseña', Icons.lock, isPassword: true),
+                    _buildPasswordTextField(),
                     SizedBox(height: 12),
                     _buildGenderDropdown(),
                     SizedBox(height: 12),
@@ -168,17 +203,54 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, {bool isPassword = false, TextInputType? keyboardType}) {
+  Widget _buildTextField(
+    TextEditingController controller,
+    String hint,
+    IconData icon, {
+    bool isPassword = false,
+    TextInputType? keyboardType,
+    VoidCallback? onEditingComplete,
+  }) {
     return TextField(
       controller: controller,
       obscureText: isPassword,
       keyboardType: keyboardType,
       style: TextStyle(color: Colors.black87),
+      onEditingComplete: onEditingComplete,
       decoration: InputDecoration(
         filled: true,
         fillColor: Colors.white,
         hintText: hint,
         prefixIcon: Icon(icon, color: Colors.grey),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPasswordTextField() {
+    return TextField(
+      controller: passwordController,
+      obscureText: !_isPasswordVisible,
+      style: TextStyle(color: Colors.black87),
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.white,
+        hintText: 'Contraseña',
+        prefixIcon: Icon(Icons.lock, color: Colors.grey),
+        suffixIcon: IconButton(
+          icon: Icon(
+            _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+            color: Colors.grey,
+          ),
+          onPressed: () {
+            setState(() {
+              _isPasswordVisible = !_isPasswordVisible;
+            });
+          },
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
           borderSide: BorderSide.none,

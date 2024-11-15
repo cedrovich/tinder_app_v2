@@ -1,16 +1,15 @@
-// lib/models/content.dart
 class Content {
   final String name;
   final int? age;
-  final String? bio;
+  final String? description; // Cambiado de bio a description
   final String? gender;
-  final String photoUrl;
+  final List<String> photoUrl;
   final List<String>? preferences;
 
   Content({
     required this.name,
     this.age,
-    this.bio,
+    this.description, // Cambiado de bio a description
     this.gender,
     required this.photoUrl,
     this.preferences,

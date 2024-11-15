@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
-import 'package:tinder_app_v2/models/content.dart'; // Importa Content desde content.dart
+import 'package:tinder_app_v2/models/content.dart';
 
 class InfoProfile extends StatefulWidget {
-  final Content profile; // Recibe el objeto Content del perfil
+  final Content profile;
 
   const InfoProfile({Key? key, required this.profile}) : super(key: key);
 
@@ -16,7 +16,7 @@ class _InfoProfileState extends State<InfoProfile> {
   late int _age;
   late String _description;
   late String _gender;
-  late String _photoUrl;
+  late List<String> _photoUrls; // Todas las fotos del perfil
   late List<String> _preferences;
   double _profileCompletionPercentage = 0.0;
 
@@ -27,18 +27,14 @@ class _InfoProfileState extends State<InfoProfile> {
   }
 
   void _loadUserProfile() {
-    // Asigna los valores del objeto Content recibido desde HomeScreen.
-    _name = widget.profile.name;
-    _age = widget.profile.age ?? 0;
-    _description =
-        widget.profile.bio ?? "Sin descripción"; // Asegúrate de esta asignación
-    print(
-        "Descripción: $_description"); // Línea para verificar el valor de descripción
-    _gender = widget.profile.gender ?? "Sin especificar";
-    _photoUrl = widget.profile.photoUrl;
-    _preferences = widget.profile.preferences ?? [];
-    _calculateProfileCompletion();
-  }
+  _name = widget.profile.name;
+  _age = widget.profile.age ?? 0;
+  _description = widget.profile.description ?? "Sin descripción"; // Cambiado de bio a description
+  _gender = widget.profile.gender ?? "Sin especificar";
+  _photoUrls = widget.profile.photoUrl;
+  _preferences = widget.profile.preferences ?? [];
+  _calculateProfileCompletion();
+}
 
   void _calculateProfileCompletion() {
     int completedFields = 0;
@@ -46,7 +42,7 @@ class _InfoProfileState extends State<InfoProfile> {
     if (_age > 0) completedFields++;
     if (_description.isNotEmpty) completedFields++;
     if (_gender.isNotEmpty) completedFields++;
-    if (_photoUrl.isNotEmpty) completedFields++;
+    if (_photoUrls.isNotEmpty) completedFields++;
     if (_preferences.isNotEmpty) completedFields++;
 
     setState(() {
@@ -64,7 +60,7 @@ class _InfoProfileState extends State<InfoProfile> {
             leading: IconButton(
               icon: Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () {
-                Navigator.of(context).pop(); // Regresa a la pantalla anterior
+                Navigator.of(context).pop();
               },
             ),
             expandedHeight: 300.0,
@@ -74,21 +70,13 @@ class _InfoProfileState extends State<InfoProfile> {
               title: Text("$_name, $_age",
                   style: TextStyle(
                       color: Colors.white, fontWeight: FontWeight.bold)),
-              background: _photoUrl.isNotEmpty
-                  ? Image.network(_photoUrl, fit: BoxFit.cover)
+              background: _photoUrls.isNotEmpty
+                  ? Image.network(_photoUrls.first, fit: BoxFit.cover)
                   : Container(
                       color: Colors.grey,
                       child:
                           Icon(Icons.person, size: 100, color: Colors.white)),
             ),
-            actions: [
-              IconButton(
-                icon: Icon(Icons.edit, color: Colors.white),
-                onPressed: () {
-                  // Acción de editar perfil
-                },
-              ),
-            ],
           ),
           SliverToBoxAdapter(
             child: Padding(
@@ -112,6 +100,11 @@ class _InfoProfileState extends State<InfoProfile> {
                         _buildDetailRow(Icons.person, "Género", _gender),
                       ],
                     ),
+                  ),
+                  SizedBox(height: 16),
+                  _buildCard(
+                    title: "Galería de Fotos",
+                    content: _buildPhotoGallery(),
                   ),
                   SizedBox(height: 16),
                   _buildCard(
@@ -147,6 +140,27 @@ class _InfoProfileState extends State<InfoProfile> {
         ],
       ),
     );
+  }
+
+  Widget _buildPhotoGallery() {
+    final galleryPhotos = _photoUrls.length > 1 ? _photoUrls.sublist(1) : [];
+
+    return galleryPhotos.isEmpty
+        ? Text("No hay fotos adicionales.")
+        : ListView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            itemCount: galleryPhotos.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(15),
+                  child: Image.network(galleryPhotos[index], fit: BoxFit.cover),
+                ),
+              );
+            },
+          );
   }
 
   Widget _buildCard({required String title, required Widget content}) {

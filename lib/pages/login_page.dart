@@ -18,6 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController passwordController = TextEditingController();
 
   bool _isLoading = false;
+  bool _isPasswordVisible = false; // Controla la visibilidad de la contraseña
 
   Future<void> signIn() async {
     setState(() {
@@ -162,7 +163,7 @@ class _LoginPageState extends State<LoginPage> {
         errorMessage = 'Esta cuenta ha sido deshabilitada.';
         break;
       default:
-        errorMessage = 'Ocurrió un error inesperado. Intenta de nuevo.';
+        errorMessage = 'Correo o Contraseña incorrectas.';
         break;
     }
     showErrorDialog(errorMessage);
@@ -218,12 +219,25 @@ class _LoginPageState extends State<LoginPage> {
                     SizedBox(height: 16),
                     TextField(
                       controller: passwordController,
-                      obscureText: true,
+                      obscureText: !_isPasswordVisible,
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: Colors.white,
                         hintText: 'Contraseña',
                         prefixIcon: Icon(Icons.lock, color: Colors.grey),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isPasswordVisible
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: Colors.grey,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          },
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
                           borderSide: BorderSide.none,
