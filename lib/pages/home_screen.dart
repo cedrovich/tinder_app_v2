@@ -44,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _swipeItems = [];
           _matchEngine = MatchEngine(swipeItems: _swipeItems);
         });
-        _showTemporaryMessage("No hay perfiles disponibles.");
+        _showTemporaryMessage("Te gastaste tus likes por hoy, vuelve mañana");
         return;
       }
 
