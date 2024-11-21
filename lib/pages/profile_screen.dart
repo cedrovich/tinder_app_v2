@@ -125,10 +125,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final user = _auth.currentUser;
       if (user != null) {
         await _firestore.collection('users').doc(user.uid).update({
-          'name': _nameController.text,
-          'age': int.parse(_ageController.text),
           'description': _descriptionController.text,
-          'gender': _genderController.text,
           'photos': _photoUrls,
           'preferences': _preferences,
         });
@@ -143,10 +140,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showEditProfileDialog() {
-    _nameController.text = _name;
-    _ageController.text = _age.toString();
     _descriptionController.text = _description;
-    _genderController.text = _gender;
 
     showDialog(
       context: context,
@@ -177,10 +171,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 SizedBox(height: 16),
-                _buildTextField("Nombre", _nameController),
-                _buildTextField("Edad", _ageController, TextInputType.number),
                 _buildTextField("Descripción", _descriptionController),
-                _buildTextField("Género", _genderController),
+                SizedBox(height: 16),
+                _buildInterestsSelector(),
               ],
             ),
           ),
@@ -210,13 +203,88 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller,
-      [TextInputType? type]) {
+Widget _buildInterestsSelector() {
+  final predefinedInterests = [
+  'Rock',
+  'Pop',
+  'Jazz',
+  'Clásica',
+  'Fútbol',
+  'Natación',
+  'Yoga',
+  'Ciclismo',
+  'Ciencia Ficción',
+  'Comedia',
+  'Terror',
+  'Anime',
+  'Omar',
+  'Vegano',
+  'Cocina Italiana',
+  'Cocina Mexicana',
+  'Sushi',
+  'Programación',
+  'E-Sports',
+  'Juegos de Estrategia',
+  'Realidad Virtual',
+  'Pintura',
+  'Fotografía',
+  'Escritura',
+  'Lectura',
+  'Anuel AA',
+  'Gatos',
+  'Perros',
+  'Caballos',
+  'Peces',
+  'Arte moderno',
+  'Historia',
+  'Trans',
+  'Medio ambiente',
+  'Religión y espiritualidad',
+  'Introvertido',
+  'Extrovertido',
+  'Aventurero',
+  'Fitness',
+  ];
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        "Intereses",
+        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      ),
+      Wrap(
+        spacing: 8.0,
+        runSpacing: 4.0,
+        children: predefinedInterests.map((interest) {
+          final isSelected = _preferences.contains(interest);
+          return ChoiceChip(
+            label: Text(interest),
+            selected: isSelected,
+            onSelected: (selected) {
+              setState(() {
+                if (selected && !_preferences.contains(interest)) {
+                  // Agregar solo si no está ya seleccionado
+                  _preferences.add(interest);
+                } else if (!selected && _preferences.contains(interest)) {
+                  // Eliminar si se deselecciona
+                  _preferences.remove(interest);
+                }
+              });
+            },
+          );
+        }).toList(),
+      ),
+    ],
+  );
+}
+
+
+  Widget _buildTextField(String label, TextEditingController controller) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.0),
       child: TextField(
         controller: controller,
-        keyboardType: type,
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(color: Colors.pink),
@@ -230,35 +298,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildPhotoList() {
-    final galleryPhotos = _photoUrls.length > 1
-        ? _photoUrls.sublist(0, _photoUrls.length - 1)
-        : [];
+  Widget _buildPreferencesList() {
+    if (_preferences.isEmpty) {
+      return Text(
+        "No se han seleccionado preferencias.",
+        style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
+      );
+    }
 
-    return galleryPhotos.isEmpty
-        ? Text("No has subido fotos adicionales.")
-        : ListView.builder(
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            itemCount: galleryPhotos.length,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: Image.network(galleryPhotos[index], fit: BoxFit.cover),
-                ),
-              );
-            },
-          );
+    return Wrap(
+      spacing: 8.0,
+      runSpacing: 4.0,
+      children: _preferences.map((preference) {
+        return Chip(
+          label: Text(preference, style: TextStyle(color: Colors.white)),
+          backgroundColor: Colors.pink,
+        );
+      }).toList(),
+    );
   }
 
   Future<void> _logout() async {
     await _auth.signOut();
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-          builder: (context) =>
-              LoginPage()), // Reemplaza LoginPage con el widget correspondiente para tu pantalla de inicio de sesión
+      MaterialPageRoute(builder: (context) => LoginPage()),
       (Route<dynamic> route) => false,
     );
   }
@@ -328,9 +391,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   actions: [
                     IconButton(
                       icon: Icon(Icons.edit, color: Colors.white),
-                      onPressed: () {
-                        _showEditProfileDialog();
-                      },
+                      onPressed: _showEditProfileDialog,
                     ),
                   ],
                 ),
@@ -351,6 +412,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ],
                           ),
                         ),
+                        SizedBox(height: 16),
+                        _buildCard("Preferencias", _buildPreferencesList()),
                         SizedBox(height: 16),
                         _buildCard("Galería de Fotos", _buildPhotoList()),
                         SizedBox(height: 16),
@@ -456,6 +519,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildPhotoList() {
+    final galleryPhotos = _photoUrls.length > 1
+        ? _photoUrls.sublist(0, _photoUrls.length - 1)
+        : [];
+
+    return galleryPhotos.isEmpty
+        ? Text("No has subido fotos adicionales.")
+        : ListView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            itemCount: galleryPhotos.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(15),
+                  child: Image.network(galleryPhotos[index], fit: BoxFit.cover),
+                ),
+              );
+            },
+          );
   }
 }
 

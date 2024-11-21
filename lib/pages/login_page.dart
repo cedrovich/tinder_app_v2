@@ -68,52 +68,59 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  Future<void> resetPassword() async {
-    final emailController = TextEditingController();
+Future<void> resetPassword() async {
+  final emailController = TextEditingController();
 
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Recuperar Contraseña'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Introduce tu correo para recuperar tu contraseña'),
-            TextField(
-              controller: emailController,
-              decoration: const InputDecoration(labelText: 'Correo'),
-              keyboardType: TextInputType.emailAddress,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () async {
-              final email = emailController.text.trim();
-              Navigator.of(context).pop();
-              if (email.isNotEmpty) {
-                try {
-                  await _auth.sendPasswordResetEmail(email: email);
-                  showConfirmationDialog(
-                      'Se ha enviado un correo para restablecer tu contraseña.');
-                } catch (e) {
-                  showErrorDialog(
-                      'Error al enviar el correo de recuperación. Verifica que el correo esté registrado.');
-                }
-              } else {
-                showErrorDialog('Por favor, introduce un correo válido.');
-              }
-            },
-            child: const Text('Enviar'),
+  await showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Recuperar Contraseña'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('Introduce tu correo para recuperar tu contraseña'),
+          TextField(
+            controller: emailController,
+            decoration: const InputDecoration(labelText: 'Correo'),
+            keyboardType: TextInputType.emailAddress,
           ),
         ],
       ),
-    );
-  }
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancelar'),
+        ),
+        TextButton(
+          onPressed: () async {
+            final email = emailController.text.trim();
+            Navigator.of(context).pop();
+            if (email.isNotEmpty && isValidEmail(email)) {
+              try {
+                await _auth.sendPasswordResetEmail(email: email);
+                showConfirmationDialog(
+                    'Se ha enviado un correo para restablecer tu contraseña.');
+              } catch (e) {
+                showErrorDialog(
+                    'Error al enviar el correo de recuperación. Verifica que el correo esté registrado.');
+              }
+            } else {
+              showErrorDialog(
+                  'Por favor, introduce un correo válido con formato correcto.');
+            }
+          },
+          child: const Text('Enviar'),
+        ),
+      ],
+    ),
+  );
+}
+
+bool isValidEmail(String email) {
+  final regex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+  return regex.hasMatch(email);
+}
+
 
   void showConfirmationDialog(String message) {
     showDialog(
