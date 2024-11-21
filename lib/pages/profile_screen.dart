@@ -29,10 +29,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = true;
   double _profileCompletionPercentage = 0.0;
 
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _ageController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _genderController = TextEditingController();
 
   @override
   void initState() {
