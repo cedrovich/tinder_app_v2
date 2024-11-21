@@ -5,9 +5,10 @@ import 'package:tinder_app_v2/models/content.dart';
 class InfoProfile extends StatefulWidget {
   final Content profile;
 
-  const InfoProfile({Key? key, required this.profile}) : super(key: key);
+  const InfoProfile({super.key, required this.profile});
 
   @override
+  // ignore: library_private_types_in_public_api
   _InfoProfileState createState() => _InfoProfileState();
 }
 
@@ -59,7 +60,7 @@ class _InfoProfileState extends State<InfoProfile> {
         slivers: [
           SliverAppBar(
             leading: IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.white),
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -69,19 +70,19 @@ class _InfoProfileState extends State<InfoProfile> {
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
               title: Text("$_name, $_age",
-                  style: TextStyle(
+                  style: const TextStyle(
                       color: Colors.white, fontWeight: FontWeight.bold)),
               background: _photoUrls.isNotEmpty
                   ? Image.network(_photoUrls.first, fit: BoxFit.cover)
                   : Container(
                       color: Colors.grey,
                       child:
-                          Icon(Icons.person, size: 100, color: Colors.white)),
+                          const Icon(Icons.person, size: 100, color: Colors.white)),
             ),
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -89,10 +90,10 @@ class _InfoProfileState extends State<InfoProfile> {
                     title: "Sobre mí",
                     content: Text(
                       _description,
-                      style: TextStyle(fontSize: 16, color: Colors.black54),
+                      style: const TextStyle(fontSize: 16, color: Colors.black54),
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   _buildCard(
                     title: "Detalles básicos",
                     content: Column(
@@ -102,12 +103,12 @@ class _InfoProfileState extends State<InfoProfile> {
                       ],
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   _buildCard(
                     title: "Galería de Fotos",
                     content: _buildPhotoGallery(),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   _buildCard(
                     title: "Intereses",
                     content: Wrap(
@@ -122,7 +123,7 @@ class _InfoProfileState extends State<InfoProfile> {
                       }).toList(),
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   _buildCard(
                     title: "Perfil completado",
                     content: LinearPercentIndicator(
@@ -147,10 +148,10 @@ class _InfoProfileState extends State<InfoProfile> {
     final galleryPhotos = _photoUrls.length > 1 ? _photoUrls.sublist(1) : [];
 
     return galleryPhotos.isEmpty
-        ? Text("No hay fotos adicionales.")
+        ? const Text("No hay fotos adicionales.")
         : ListView.builder(
             shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
+            physics: const NeverScrollableScrollPhysics(),
             itemCount: galleryPhotos.length,
             itemBuilder: (context, index) {
               return Padding(
@@ -168,18 +169,18 @@ class _InfoProfileState extends State<InfoProfile> {
     return Card(
       elevation: 4,
       child: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             content,
           ],
         ),
@@ -189,15 +190,15 @@ class _InfoProfileState extends State<InfoProfile> {
 
   Widget _buildDetailRow(IconData icon, String label, String value) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
           Icon(icon, color: Colors.pink),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           Text(label,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          Spacer(),
-          Text(value, style: TextStyle(fontSize: 16)),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const Spacer(),
+          Text(value, style: const TextStyle(fontSize: 16)),
         ],
       ),
     );

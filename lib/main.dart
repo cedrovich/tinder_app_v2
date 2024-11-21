@@ -33,10 +33,12 @@ void main() async {
 
   // Ejecuta la aplicación
   runApp(
-      MyApp()); // Llama a la clase principal `MyApp` para iniciar la aplicación.
+      const MyApp()); // Llama a la clase principal `MyApp` para iniciar la aplicación.
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -51,13 +53,13 @@ class MyApp extends StatelessWidget {
           '/login', // Define la ruta inicial como la página de inicio de sesión.
       routes: {
         '/login': (context) =>
-            LoginPage(), // Ruta para la página de inicio de sesión.
+            const LoginPage(), // Ruta para la página de inicio de sesión.
         '/register': (context) =>
-            RegisterPage(), // Ruta para la página de registro.
+            const RegisterPage(), // Ruta para la página de registro.
         '/informationUser': (context) =>
-            InformationUserPage(), // Ruta para la página de información del usuario.
+            const InformationUserPage(), // Ruta para la página de información del usuario.
         '/home': (context) =>
-            HomeScreen(), // Ruta para la página principal (dashboard).
+            const HomeScreen(), // Ruta para la página principal (dashboard).
       },
     );
   }

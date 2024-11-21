@@ -4,10 +4,10 @@ import 'package:cloud_firestore/cloud_firestore.dart'; // Importa Cloud Firestor
 import 'package:font_awesome_flutter/font_awesome_flutter.dart'; // Importa Font Awesome para usar íconos personalizados.
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({Key? key})
-      : super(key: key); // Constructor para la página de registro.
+  const RegisterPage({super.key}); // Constructor para la página de registro.
 
   @override
+  // ignore: library_private_types_in_public_api
   _RegisterPageState createState() =>
       _RegisterPageState(); // Crea el estado asociado a esta página.
 }
@@ -89,6 +89,7 @@ class _RegisterPageState extends State<RegisterPage> {
       });
 
       // Navega a la página de información del usuario después del registro.
+      // ignore: use_build_context_synchronously
       Navigator.pushReplacementNamed(context, '/informationUser');
     } catch (e) {
       _showErrorDialog('Error: ${e.toString()}'); // Muestra un error si ocurre.
@@ -139,7 +140,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment
                 .topRight, // Gradiente de color desde la esquina superior derecha.
@@ -156,13 +157,13 @@ class _RegisterPageState extends State<RegisterPage> {
                   mainAxisAlignment: MainAxisAlignment
                       .center, // Centra los elementos en el eje principal.
                   children: [
-                    Icon(
+                    const Icon(
                       FontAwesomeIcons.fire, // Ícono de fuego.
                       size: 80,
                       color: Colors.white,
                     ),
-                    SizedBox(height: 12), // Espaciado.
-                    Text(
+                    const SizedBox(height: 12), // Espaciado.
+                    const Text(
                       'Regístrate', // Título de la página.
                       style: TextStyle(
                         fontSize: 32,
@@ -170,10 +171,10 @@ class _RegisterPageState extends State<RegisterPage> {
                         color: Colors.white,
                       ),
                     ),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     _buildTextField(nameController, 'Nombre',
                         Icons.person), // Campo para el nombre.
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     _buildTextField(
                       ageController,
                       'Edad',
@@ -188,46 +189,46 @@ class _RegisterPageState extends State<RegisterPage> {
                         padding: const EdgeInsets.only(top: 4.0),
                         child: Text(
                           _ageErrorMessage!, // Muestra el mensaje de error de la edad.
-                          style: TextStyle(color: Colors.black, fontSize: 12),
+                          style: const TextStyle(color: Colors.black, fontSize: 12),
                         ),
                       ),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     _buildTextField(emailController, 'Correo', Icons.email,
                         keyboardType: TextInputType
                             .emailAddress), // Campo para el correo.
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     _buildPasswordTextField(), // Campo para la contraseña.
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     _buildGenderDropdown(), // Dropdown para seleccionar el género.
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     ElevatedButton(
                       onPressed: _isLoading
                           ? null
-                          : register, // Desactiva el botón si está cargando.
+                          : register,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ), // Desactiva el botón si está cargando.
                       child: _isLoading
-                          ? CircularProgressIndicator(
+                          ? const CircularProgressIndicator(
                               color:
                                   Colors.pink) // Muestra un indicador de carga.
-                          : Text(
+                          : const Text(
                               'Registrarte',
                               style:
                                   TextStyle(fontSize: 18, color: Colors.pink),
                             ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                      ),
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     TextButton(
                       onPressed: () {
                         Navigator.pop(context); // Vuelve a la página anterior.
                       },
-                      child: Text(
+                      child: const Text(
                         '¿Ya tienes una cuenta? Inicia sesión',
                         style: TextStyle(color: Colors.white),
                       ),
@@ -255,7 +256,7 @@ class _RegisterPageState extends State<RegisterPage> {
       controller: controller, // Controlador del texto.
       obscureText: isPassword, // Oculta el texto si es una contraseña.
       keyboardType: keyboardType, // Configura el teclado.
-      style: TextStyle(color: Colors.black87),
+      style: const TextStyle(color: Colors.black87),
       onEditingComplete: onEditingComplete,
       decoration: InputDecoration(
         filled: true,
@@ -276,12 +277,12 @@ class _RegisterPageState extends State<RegisterPage> {
       controller: passwordController,
       obscureText:
           !_isPasswordVisible, // Alterna la visibilidad de la contraseña.
-      style: TextStyle(color: Colors.black87),
+      style: const TextStyle(color: Colors.black87),
       decoration: InputDecoration(
         filled: true,
         fillColor: Colors.white,
         hintText: 'Contraseña',
-        prefixIcon: Icon(Icons.lock, color: Colors.grey),
+        prefixIcon: const Icon(Icons.lock, color: Colors.grey),
         suffixIcon: IconButton(
           icon: Icon(
             _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
@@ -305,7 +306,7 @@ class _RegisterPageState extends State<RegisterPage> {
   // Método para construir el selector de género.
   Widget _buildGenderDropdown() {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(30),
@@ -324,12 +325,12 @@ class _RegisterPageState extends State<RegisterPage> {
               selectedGender = value; // Actualiza el género seleccionado.
             });
           },
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             prefixIcon: Icon(Icons.person_outline, color: Colors.grey),
             hintText: 'Género',
             border: InputBorder.none,
           ),
-          icon: Icon(Icons.arrow_drop_down, color: Colors.grey),
+          icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
           isExpanded: true,
           dropdownColor: Colors.white,
         ),

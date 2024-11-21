@@ -7,7 +7,10 @@ import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class InformationUserPage extends StatefulWidget {
+  const InformationUserPage({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _InformationUserPageState createState() => _InformationUserPageState();
 }
 
@@ -96,6 +99,7 @@ class _InformationUserPageState extends State<InformationUserPage> {
         showConfirmationDialog(
             'Cuenta creada con éxito. Por favor, revisa tu correo para verificar tu cuenta.');
 
+        // ignore: use_build_context_synchronously
         Navigator.pushReplacementNamed(context, '/home');
       } catch (e) {
         showErrorDialog('Error al guardar la información: $e');
@@ -133,12 +137,12 @@ class _InformationUserPageState extends State<InformationUserPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Confirmación de cuenta'),
+        title: const Text('Confirmación de cuenta'),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('OK'),
+            child: const Text('OK'),
           ),
         ],
       ),
@@ -149,12 +153,12 @@ class _InformationUserPageState extends State<InformationUserPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Error'),
+        title: const Text('Error'),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('OK'),
+            child: const Text('OK'),
           ),
         ],
       ),
@@ -165,7 +169,7 @@ class _InformationUserPageState extends State<InformationUserPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topRight,
             end: Alignment.bottomLeft,
@@ -179,15 +183,15 @@ class _InformationUserPageState extends State<InformationUserPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Center(
+                  const Center(
                     child: Icon(
                       FontAwesomeIcons.fire,
                       size: 60,
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(height: 24),
-                  Text(
+                  const SizedBox(height: 24),
+                  const Text(
                     'Completa tu perfil',
                     style: TextStyle(
                       fontSize: 28,
@@ -195,7 +199,7 @@ class _InformationUserPageState extends State<InformationUserPage> {
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -203,7 +207,7 @@ class _InformationUserPageState extends State<InformationUserPage> {
                     ),
                     child: TextField(
                       controller: descriptionController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Descripción',
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.all(16),
@@ -211,11 +215,11 @@ class _InformationUserPageState extends State<InformationUserPage> {
                       maxLines: 3,
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: addPhoto,
-                    icon: Icon(Icons.add_a_photo, color: Colors.pink),
-                    label: Text('Agregar Foto',
+                    icon: const Icon(Icons.add_a_photo, color: Colors.pink),
+                    label: const Text('Agregar Foto',
                         style: TextStyle(color: Colors.pink)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
@@ -223,10 +227,10 @@ class _InformationUserPageState extends State<InformationUserPage> {
                         borderRadius: BorderRadius.circular(30),
                       ),
                       padding:
-                          EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Wrap(
                     spacing: 8.0,
                     runSpacing: 8.0,
@@ -238,8 +242,8 @@ class _InformationUserPageState extends State<InformationUserPage> {
                             ))
                         .toList(),
                   ),
-                  SizedBox(height: 24),
-                  Text(
+                  const SizedBox(height: 24),
+                  const Text(
                     'Tus intereses',
                     style: TextStyle(
                       fontSize: 20,
@@ -247,7 +251,7 @@ class _InformationUserPageState extends State<InformationUserPage> {
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Wrap(
                     spacing: 8.0,
                     runSpacing: 8.0,
@@ -266,21 +270,21 @@ class _InformationUserPageState extends State<InformationUserPage> {
                       );
                     }).toList(),
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   Center(
                     child: ElevatedButton(
                       onPressed: saveUserInfo,
-                      child: Text(
-                        'Guardar Información',
-                        style: TextStyle(fontSize: 18, color: Colors.pink),
-                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         padding:
-                            EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                            const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
+                      ),
+                      child: const Text(
+                        'Guardar Información',
+                        style: TextStyle(fontSize: 18, color: Colors.pink),
                       ),
                     ),
                   ),

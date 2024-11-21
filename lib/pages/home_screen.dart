@@ -11,9 +11,10 @@ import 'package:tinder_app_v2/pages/info_profile.dart';
 import 'package:tinder_app_v2/models/content.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _HomeScreenState createState() => _HomeScreenState();
 }
 
@@ -53,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
           .where(
               (doc) => doc.id != currentUser.uid) // Excluye al usuario actual
           .map((doc) {
-        final userData = doc.data() as Map<String, dynamic>;
+        final userData = doc.data();
 
         String name = userData['name']?.toString() ?? 'Usuario desconocido';
         List<String> photoUrls = userData['photos'] != null
@@ -99,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _actionMessage = message;
     });
 
-    Timer(Duration(seconds: 1), () {
+    Timer(const Duration(seconds: 1), () {
       setState(() {
         _actionMessage = null;
       });
@@ -108,6 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> signOut() async {
     await _auth.signOut();
+    // ignore: use_build_context_synchronously
     Navigator.pushReplacementNamed(context, '/login');
   }
 
@@ -118,30 +120,30 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(FontAwesomeIcons.user, color: Colors.grey),
+          icon: const Icon(FontAwesomeIcons.user, color: Colors.grey),
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => ProfileScreen()),
+              MaterialPageRoute(builder: (context) => const ProfileScreen()),
             );
           },
         ),
-        title: Icon(FontAwesomeIcons.fire, color: Colors.pink, size: 30),
+        title: const Icon(FontAwesomeIcons.fire, color: Colors.pink, size: 30),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(FontAwesomeIcons.comments, color: Colors.grey),
+            icon: const Icon(FontAwesomeIcons.comments, color: Colors.grey),
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => MessagesScreen()),
+                MaterialPageRoute(builder: (context) => const MessagesScreen()),
               );
             },
           ),
         ],
       ),
       body: _swipeItems.isEmpty
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : Stack(
               children: [
                 SwipeCards(
@@ -162,7 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Container(
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.only(
+                              borderRadius: const BorderRadius.only(
                                   topLeft: Radius.circular(20),
                                   topRight: Radius.circular(20)),
                               image: DecorationImage(
@@ -176,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             left: 50,
                             child: Text(
                               content.name,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 32,
                                 fontWeight: FontWeight.bold,
@@ -212,7 +214,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             vertical: 8.0, horizontal: 16.0),
                         child: Text(
                           _actionMessage!,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -253,12 +255,12 @@ class _HomeScreenState extends State<HomeScreen> {
       IconData icon, Color color, VoidCallback onPressed) {
     return ElevatedButton(
       onPressed: onPressed,
-      child: Icon(icon, color: Colors.white),
       style: ElevatedButton.styleFrom(
-        shape: CircleBorder(),
-        padding: EdgeInsets.all(20),
+        shape: const CircleBorder(),
+        padding: const EdgeInsets.all(20),
         backgroundColor: color,
       ),
+      child: Icon(icon, color: Colors.white),
     );
   }
 }

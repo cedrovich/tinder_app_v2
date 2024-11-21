@@ -4,9 +4,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  const LoginPage({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _LoginPageState createState() => _LoginPageState();
 }
 
@@ -58,6 +59,7 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
+      // ignore: use_build_context_synchronously
       Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
       handleAuthError(e);
@@ -180,7 +182,7 @@ bool isValidEmail(String email) {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topRight,
             end: Alignment.bottomLeft,
@@ -195,13 +197,13 @@ bool isValidEmail(String email) {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
+                    const Icon(
                       FontAwesomeIcons.fire,
                       size: 80,
                       color: Colors.white,
                     ),
-                    SizedBox(height: 48),
-                    Text(
+                    const SizedBox(height: 48),
+                    const Text(
                       'Inicia Sesión',
                       style: TextStyle(
                         fontSize: 32,
@@ -209,21 +211,21 @@ bool isValidEmail(String email) {
                         color: Colors.white,
                       ),
                     ),
-                    SizedBox(height: 48),
+                    const SizedBox(height: 48),
                     TextField(
                       controller: emailOrNameController,
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: Colors.white,
                         hintText: 'Nombre o Correo',
-                        prefixIcon: Icon(Icons.person, color: Colors.grey),
+                        prefixIcon: const Icon(Icons.person, color: Colors.grey),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
                           borderSide: BorderSide.none,
                         ),
                       ),
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     TextField(
                       controller: passwordController,
                       obscureText: !_isPasswordVisible,
@@ -231,7 +233,7 @@ bool isValidEmail(String email) {
                         filled: true,
                         fillColor: Colors.white,
                         hintText: 'Contraseña',
-                        prefixIcon: Icon(Icons.lock, color: Colors.grey),
+                        prefixIcon: const Icon(Icons.lock, color: Colors.grey),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _isPasswordVisible
@@ -251,38 +253,38 @@ bool isValidEmail(String email) {
                         ),
                       ),
                     ),
-                    SizedBox(height: 24),
+                    const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: _isLoading ? null : signIn,
-                      child: _isLoading
-                          ? CircularProgressIndicator(color: Colors.white)
-                          : Text(
-                              'Iniciar Sesión',
-                              style: TextStyle(fontSize: 18),
-                            ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.pink,
                         padding:
-                            EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                            const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
                       ),
+                      child: _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              'Iniciar Sesión',
+                              style: TextStyle(fontSize: 18),
+                            ),
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     TextButton(
                       onPressed: () {
                         Navigator.pushNamed(context, '/register');
                       },
-                      child: Text(
+                      child: const Text(
                         'No tienes cuenta? Regístrate',
                         style: TextStyle(color: Colors.white),
                       ),
                     ),
                     TextButton(
                       onPressed: resetPassword,
-                      child: Text(
+                      child: const Text(
                         '¿Olvidaste tu contraseña?',
                         style: TextStyle(color: Colors.white),
                       ),

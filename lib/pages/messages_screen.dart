@@ -8,13 +8,13 @@ class MessagesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Usuarios",
+        title: const Text("Usuarios",
             style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
           IconButton(
-            icon: Icon(Icons.search, color: Colors.black),
+            icon: const Icon(Icons.search, color: Colors.black),
             onPressed: () {
               // Implementar funcionalidad de búsqueda
             },
@@ -25,10 +25,10 @@ class MessagesScreen extends StatelessWidget {
         stream: FirebaseFirestore.instance.collection('users').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text("No hay usuarios disponibles."));
+            return const Center(child: Text("No hay usuarios disponibles."));
           }
 
           final users = snapshot.data!.docs;
@@ -64,15 +64,15 @@ class UserItem extends StatelessWidget {
   final String imageUrl;
 
   const UserItem({
-    Key? key,
+    super.key,
     required this.name,
     required this.imageUrl,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
           CircleAvatar(
@@ -80,11 +80,11 @@ class UserItem extends StatelessWidget {
             backgroundImage:
                 NetworkImage(imageUrl), // Carga la imagen desde la URL
           ),
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
           Expanded(
             child: Text(
               name,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ),
         ],

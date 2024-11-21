@@ -9,9 +9,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:io';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  const ProfileScreen({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _ProfileScreenState createState() => _ProfileScreenState();
 }
 
@@ -61,6 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
       }
     } catch (e) {
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text("Error al cargar el perfil: ${e.toString()}"),
       ));
@@ -126,10 +128,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           'photos': _photoUrls,
           'preferences': _preferences,
         });
+        // ignore: use_build_context_synchronously
         Navigator.of(context).pop();
         _loadUserProfile();
       }
     } catch (e) {
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error al guardar el perfil: ${e.toString()}")),
       );
@@ -146,7 +150,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.0),
           ),
-          title: Center(
+          title: const Center(
             child: Text(
               "Editar Perfil",
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
@@ -163,13 +167,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ? NetworkImage(_photoUrls.last)
                         : null,
                     child: _photoUrls.isEmpty
-                        ? Icon(Icons.add_a_photo, size: 40, color: Colors.white)
+                        ? const Icon(Icons.add_a_photo, size: 40, color: Colors.white)
                         : null,
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 _buildTextField("Descripción", _descriptionController),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 _buildInterestsSelector(),
               ],
             ),
@@ -192,7 +196,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   borderRadius: BorderRadius.circular(10.0),
                 ),
               ),
-              child: Text("Guardar", style: TextStyle(fontSize: 16)),
+              child: const Text("Guardar", style: TextStyle(fontSize: 16)),
             ),
           ],
         );
@@ -246,7 +250,7 @@ Widget _buildInterestsSelector() {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(
+      const Text(
         "Intereses",
         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
@@ -279,12 +283,12 @@ Widget _buildInterestsSelector() {
 
   Widget _buildTextField(String label, TextEditingController controller) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextField(
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: Colors.pink),
+          labelStyle: const TextStyle(color: Colors.pink),
           filled: true,
           fillColor: Colors.grey[100],
           border: OutlineInputBorder(
@@ -297,7 +301,7 @@ Widget _buildInterestsSelector() {
 
   Widget _buildPreferencesList() {
     if (_preferences.isEmpty) {
-      return Text(
+      return const Text(
         "No se han seleccionado preferencias.",
         style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
       );
@@ -308,7 +312,7 @@ Widget _buildInterestsSelector() {
       runSpacing: 4.0,
       children: _preferences.map((preference) {
         return Chip(
-          label: Text(preference, style: TextStyle(color: Colors.white)),
+          label: Text(preference, style: const TextStyle(color: Colors.white)),
           backgroundColor: Colors.pink,
         );
       }).toList(),
@@ -317,8 +321,9 @@ Widget _buildInterestsSelector() {
 
   Future<void> _logout() async {
     await _auth.signOut();
+    // ignore: use_build_context_synchronously
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => LoginPage()),
+      MaterialPageRoute(builder: (context) => const LoginPage()),
       (Route<dynamic> route) => false,
     );
   }
@@ -327,12 +332,12 @@ Widget _buildInterestsSelector() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Error'),
+        title: const Text('Error'),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('OK'),
+            child: const Text('OK'),
           ),
         ],
       ),
@@ -344,12 +349,12 @@ Widget _buildInterestsSelector() {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : CustomScrollView(
               slivers: [
                 SliverAppBar(
                   leading: IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.white),
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
@@ -359,7 +364,7 @@ Widget _buildInterestsSelector() {
                   pinned: true,
                   flexibleSpace: FlexibleSpaceBar(
                     title: Text("$_name, $_age",
-                        style: TextStyle(
+                        style: const TextStyle(
                             color: Colors.white, fontWeight: FontWeight.bold)),
                     background: Stack(
                       fit: StackFit.expand,
@@ -368,10 +373,10 @@ Widget _buildInterestsSelector() {
                             ? Image.network(_photoUrls.last, fit: BoxFit.cover)
                             : Container(
                                 color: Colors.grey,
-                                child: Icon(Icons.person,
+                                child: const Icon(Icons.person,
                                     size: 100, color: Colors.white)),
                         Container(
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             gradient: LinearGradient(
                               begin: Alignment.bottomCenter,
                               end: Alignment.topCenter,
@@ -387,19 +392,19 @@ Widget _buildInterestsSelector() {
                   ),
                   actions: [
                     IconButton(
-                      icon: Icon(Icons.edit, color: Colors.white),
+                      icon: const Icon(Icons.edit, color: Colors.white),
                       onPressed: _showEditProfileDialog,
                     ),
                   ],
                 ),
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(8.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildCard("Sobre mí", Text(_description)),
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
                         _buildCard(
                           "Detalles básicos",
                           Column(
@@ -409,11 +414,11 @@ Widget _buildInterestsSelector() {
                             ],
                           ),
                         ),
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
                         _buildCard("Preferencias", _buildPreferencesList()),
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
                         _buildCard("Galería de Fotos", _buildPhotoList()),
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
                         _buildCard(
                           "Perfil completado",
                           LinearPercentIndicator(
@@ -421,14 +426,14 @@ Widget _buildInterestsSelector() {
                             percent: _profileCompletionPercentage,
                             center: Text(
                               "${(_profileCompletionPercentage * 100).toInt()}%",
-                              style: TextStyle(color: Colors.white),
+                              style: const TextStyle(color: Colors.white),
                             ),
                             progressColor: Colors.pink,
                             backgroundColor: Colors.pink[100],
                             animation: true,
                           ),
                         ),
-                        SizedBox(height: 12),
+                        const SizedBox(height: 12),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
@@ -440,7 +445,7 @@ Widget _buildInterestsSelector() {
                                   borderRadius: BorderRadius.circular(10.0),
                                 ),
                               ),
-                              child: Text(
+                              child: const Text(
                                 "Comprar Tinder Gold",
                                 style: TextStyle(
                                     fontSize: 12, color: Colors.white),
@@ -454,7 +459,7 @@ Widget _buildInterestsSelector() {
                                   borderRadius: BorderRadius.circular(10.0),
                                 ),
                               ),
-                              child: Text(
+                              child: const Text(
                                 "Cerrar Sesión",
                                 style: TextStyle(
                                     fontSize: 12, color: Colors.white),
@@ -484,17 +489,17 @@ Widget _buildInterestsSelector() {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
       elevation: 5,
-      margin: EdgeInsets.symmetric(horizontal: 5),
+      margin: const EdgeInsets.symmetric(horizontal: 5),
       child: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               title,
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             content,
           ],
         ),
@@ -504,15 +509,15 @@ Widget _buildInterestsSelector() {
 
   Widget _buildDetailRow(IconData icon, String label, String value) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
           Icon(icon, color: Colors.pink),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           Text(label,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          Spacer(),
-          Text(value, style: TextStyle(fontSize: 16)),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const Spacer(),
+          Text(value, style: const TextStyle(fontSize: 16)),
         ],
       ),
     );
@@ -524,10 +529,10 @@ Widget _buildInterestsSelector() {
         : [];
 
     return galleryPhotos.isEmpty
-        ? Text("No has subido fotos adicionales.")
+        ? const Text("No has subido fotos adicionales.")
         : ListView.builder(
             shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
+            physics: const NeverScrollableScrollPhysics(),
             itemCount: galleryPhotos.length,
             itemBuilder: (context, index) {
               return Padding(
