@@ -84,7 +84,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final storage = Supabase.instance.client.storage;
       final fileName = pickedFile.path.split('/').last;
 
-      final response = await storage.from('PhotosTAV2').upload(fileName, image, fileOptions: const FileOptions(upsert: true));
+      final response = await storage.from('PhotosTAV2').upload(fileName, image,
+          fileOptions: const FileOptions(upsert: true));
       if (response.error == null) {
         final publicUrl = storage.from('PhotosTAV2').getPublicUrl(fileName);
 
@@ -99,7 +100,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           });
         }
       } else {
-        _showErrorDialog('Error al subir la imagen: ${response.error!.message}');
+        _showErrorDialog(
+            'Error al subir la imagen: ${response.error!.message}');
       }
     } catch (e) {
       _showErrorDialog('Error al seleccionar o subir la imagen: $e');
@@ -229,7 +231,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildPhotoList() {
-    final galleryPhotos = _photoUrls.length > 1 ? _photoUrls.sublist(0, _photoUrls.length - 1) : [];
+    final galleryPhotos = _photoUrls.length > 1
+        ? _photoUrls.sublist(0, _photoUrls.length - 1)
+        : [];
 
     return galleryPhotos.isEmpty
         ? Text("No has subido fotos adicionales.")
@@ -250,13 +254,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _logout() async {
-  await _auth.signOut();
-  Navigator.of(context).pushAndRemoveUntil(
-    MaterialPageRoute(builder: (context) => LoginPage()), // Reemplaza LoginPage con el widget correspondiente para tu pantalla de inicio de sesión
-    (Route<dynamic> route) => false,
-  );
-}
-
+    await _auth.signOut();
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+          builder: (context) =>
+              LoginPage()), // Reemplaza LoginPage con el widget correspondiente para tu pantalla de inicio de sesión
+      (Route<dynamic> route) => false,
+    );
+  }
 
   void _showErrorDialog(String message) {
     showDialog(
@@ -377,7 +382,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                               child: Text(
                                 "Comprar Tinder Gold",
-                                style: TextStyle(fontSize: 12, color: Colors.white),
+                                style: TextStyle(
+                                    fontSize: 12, color: Colors.white),
                               ),
                             ),
                             ElevatedButton(
@@ -390,7 +396,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                               child: Text(
                                 "Cerrar Sesión",
-                                style: TextStyle(fontSize: 12, color: Colors.white),
+                                style: TextStyle(
+                                    fontSize: 12, color: Colors.white),
                               ),
                             ),
                           ],
@@ -405,8 +412,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _launchPaymentUrl() async {
-    final Uri url =
-        Uri.parse('https://buy.stripe.com/test_bIY6qFf4Ogbm9Ow5kk');
+    final Uri url = Uri.parse('https://buy.stripe.com/test_bIY6qFf4Ogbm9Ow5kk');
     if (await canLaunchUrl(url)) {
       await launchUrl(url);
     } else {

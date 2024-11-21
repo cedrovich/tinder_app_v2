@@ -50,36 +50,37 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Filtrar y mezclar perfiles
       List<SwipeItem> loadedItems = snapshot.docs
-          .where((doc) => doc.id != currentUser.uid) // Excluye al usuario actual
+          .where(
+              (doc) => doc.id != currentUser.uid) // Excluye al usuario actual
           .map((doc) {
-            final userData = doc.data() as Map<String, dynamic>;
+        final userData = doc.data() as Map<String, dynamic>;
 
-            String name = userData['name']?.toString() ?? 'Usuario desconocido';
-            List<String> photoUrls = userData['photos'] != null
-                ? List<String>.from(userData['photos'])
-                : ['https://example.com/default.jpg'];
-            String description = userData['description']?.toString() ?? 'Sin descripción';
-            int? age = userData['age'] as int?;
-            String? gender = userData['gender']?.toString();
-            List<String>? preferences = userData['preferences'] != null
-                ? List<String>.from(userData['preferences'])
-                : [];
+        String name = userData['name']?.toString() ?? 'Usuario desconocido';
+        List<String> photoUrls = userData['photos'] != null
+            ? List<String>.from(userData['photos'])
+            : ['https://example.com/default.jpg'];
+        String description =
+            userData['description']?.toString() ?? 'Sin descripción';
+        int? age = userData['age'] as int?;
+        String? gender = userData['gender']?.toString();
+        List<String>? preferences = userData['preferences'] != null
+            ? List<String>.from(userData['preferences'])
+            : [];
 
-            return SwipeItem(
-              content: Content(
-                name: name,
-                photoUrl: photoUrls,
-                description: description,
-                age: age,
-                gender: gender,
-                preferences: preferences,
-              ),
-              likeAction: () => _showTemporaryMessage("Liked $name"),
-              nopeAction: () => _showTemporaryMessage("Nope $name"),
-              superlikeAction: () => _showTemporaryMessage("Superliked $name"),
-            );
-          })
-          .toList();
+        return SwipeItem(
+          content: Content(
+            name: name,
+            photoUrl: photoUrls,
+            description: description,
+            age: age,
+            gender: gender,
+            preferences: preferences,
+          ),
+          likeAction: () => _showTemporaryMessage("Liked $name"),
+          nopeAction: () => _showTemporaryMessage("Nope $name"),
+          superlikeAction: () => _showTemporaryMessage("Superliked $name"),
+        );
+      }).toList();
 
       // Mezclar perfiles aleatoriamente
       loadedItems.shuffle(Random());
@@ -228,16 +229,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildActionButton(FontAwesomeIcons.xmark, const Color.fromARGB(59, 244, 67, 54),
-                          () {
+                      _buildActionButton(FontAwesomeIcons.xmark,
+                          const Color.fromARGB(59, 244, 67, 54), () {
                         _matchEngine.currentItem?.nope();
                       }),
-                      _buildActionButton(FontAwesomeIcons.star, const Color.fromARGB(56, 33, 149, 243),
-                          () {
+                      _buildActionButton(FontAwesomeIcons.star,
+                          const Color.fromARGB(56, 33, 149, 243), () {
                         _matchEngine.currentItem?.superLike();
                       }),
-                      _buildActionButton(FontAwesomeIcons.heart, const Color.fromARGB(53, 76, 175, 79),
-                          () {
+                      _buildActionButton(FontAwesomeIcons.heart,
+                          const Color.fromARGB(53, 76, 175, 79), () {
                         _matchEngine.currentItem?.like();
                       }),
                     ],

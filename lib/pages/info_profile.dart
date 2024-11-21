@@ -27,14 +27,15 @@ class _InfoProfileState extends State<InfoProfile> {
   }
 
   void _loadUserProfile() {
-  _name = widget.profile.name;
-  _age = widget.profile.age ?? 0;
-  _description = widget.profile.description ?? "Sin descripción"; // Cambiado de bio a description
-  _gender = widget.profile.gender ?? "Sin especificar";
-  _photoUrls = widget.profile.photoUrl;
-  _preferences = widget.profile.preferences ?? [];
-  _calculateProfileCompletion();
-}
+    _name = widget.profile.name;
+    _age = widget.profile.age ?? 0;
+    _description = widget.profile.description ??
+        "Sin descripción"; // Cambiado de bio a description
+    _gender = widget.profile.gender ?? "Sin especificar";
+    _photoUrls = widget.profile.photoUrl;
+    _preferences = widget.profile.preferences ?? [];
+    _calculateProfileCompletion();
+  }
 
   void _calculateProfileCompletion() {
     int completedFields = 0;

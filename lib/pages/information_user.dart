@@ -20,9 +20,24 @@ class _InformationUserPageState extends State<InformationUserPage> {
   final ImagePicker _picker = ImagePicker();
 
   final List<String> preferenceOptions = [
-    'Rock', 'Pop', 'Jazz', 'Clásica', 'Reguetón', 'Electrónica',
-    'Hip Hop', 'Deportes', 'Cine', 'Viajes', 'Tecnología', 'Trans',
-    'Gay', 'Futbol', 'Basquetbol', 'AnuelAA', 'Bad Bunny', 'Taylor Swift'
+    'Rock',
+    'Pop',
+    'Jazz',
+    'Clásica',
+    'Reguetón',
+    'Electrónica',
+    'Hip Hop',
+    'Deportes',
+    'Cine',
+    'Viajes',
+    'Tecnología',
+    'Trans',
+    'Gay',
+    'Futbol',
+    'Basquetbol',
+    'AnuelAA',
+    'Bad Bunny',
+    'Taylor Swift'
   ];
 
   Map<String, bool> selectedPreferences = {};
@@ -57,8 +72,7 @@ class _InformationUserPageState extends State<InformationUserPage> {
 
         await user.sendEmailVerification();
         showConfirmationDialog(
-          'Cuenta creada con éxito. Por favor, revisa tu correo para verificar tu cuenta.'
-        );
+            'Cuenta creada con éxito. Por favor, revisa tu correo para verificar tu cuenta.');
 
         Navigator.pushReplacementNamed(context, '/home');
       } catch (e) {
@@ -179,13 +193,15 @@ class _InformationUserPageState extends State<InformationUserPage> {
                   ElevatedButton.icon(
                     onPressed: addPhoto,
                     icon: Icon(Icons.add_a_photo, color: Colors.pink),
-                    label: Text('Agregar Foto', style: TextStyle(color: Colors.pink)),
+                    label: Text('Agregar Foto',
+                        style: TextStyle(color: Colors.pink)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
-                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     ),
                   ),
                   SizedBox(height: 16),
@@ -195,7 +211,8 @@ class _InformationUserPageState extends State<InformationUserPage> {
                     children: photos
                         .map((url) => ClipRRect(
                               borderRadius: BorderRadius.circular(10),
-                              child: Image.network(url, width: 100, height: 100, fit: BoxFit.cover),
+                              child: Image.network(url,
+                                  width: 100, height: 100, fit: BoxFit.cover),
                             ))
                         .toList(),
                   ),
@@ -237,7 +254,8 @@ class _InformationUserPageState extends State<InformationUserPage> {
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
